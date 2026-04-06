@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 from datetime import timedelta, datetime
 import logging
 
@@ -24,6 +25,26 @@ class Tagihan(models.Model):
     def _onchange_cara_pembayaran(self):
         if self.cara_pembayaran != 'saldo':
             self.activate_automation = False
+
+    @api.onchange('siswa_id', 'amount_total', 'cara_pembayaran')
+    def _onchange_check_limit_warning(self):
+        """Warning if invoice amount exceeds santri spending limit"""
+        if self.cara_pembayaran == 'saldo' and self.siswa_id and self.amount_total > 0:
+            if self.siswa_id.is_limit_active:
+                remaining = self.siswa_id.remaining_limit
+                if float_compare(self.amount_total, remaining, precision_digits=0) > 0:
+                    limit_label = dict(self.siswa_id._fields['limit'].selection).get(
+                        self.siswa_id.limit, 'Periodik')
+                    return {
+                        'warning': {
+                            'title': "Peringatan Limit Saldo!",
+                            'message': (
+                                f"Total tagihan (Rp {self.amount_total:,.0f}) melebihi sisa limit {limit_label} "
+                                f"santri (Rp {remaining:,.0f}).\n\n"
+                                f"Pembayaran otomatis akan gagal jika tagihan ini di-post tanpa menyesuaikan nominal atau limit."
+                            )
+                        }
+                    }
 
     def action_recover_kerugian_piutang(self):
         pass
@@ -366,7 +387,22 @@ class Tagihan(models.Model):
         return res
 
     def action_post(self):
-        """Override action_post to trigger auto-payment after posting"""
+        """Override action_post to validate limit and trigger auto-payment"""
+        # Strict validation for spending limit before posting
+        for record in self:
+            if record.move_type == 'out_invoice' and record.siswa_id and record.cara_pembayaran == 'saldo':
+                if record.siswa_id.is_limit_active:
+                    remaining = record.siswa_id.remaining_limit
+                    if float_compare(record.amount_total, remaining, precision_digits=0) > 0:
+                        limit_label = dict(record.siswa_id._fields['limit'].selection).get(
+                            record.siswa_id.limit, 'Periodik')
+                        raise UserError(
+                            f"Konfirmasi tagihan GAGAL untuk {record.siswa_id.name}.\n\n"
+                            f"Total tagihan (Rp {record.amount_total:,.0f}) melebihi sisa limit {limit_label} "
+                            f"santri (Rp {remaining:,.0f}).\n\n"
+                            f"Silakan kurangi nominal tagihan atau naikkan limit santri terlebih dahulu."
+                        )
+
         res = super(Tagihan, self).action_post()
 
         # AUTO-PAYMENT: Trigger setelah post

@@ -1,81 +1,103 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
         <!-- Inherit Siswa Form to add VA section and Smart Billing -->
         <record id="view_cdn_siswa_form_smart_billing" model="ir.ui.view">
             <field name="name">cdn.siswa.form.smart.billing</field>
             <field name="model">cdn.siswa</field>
-            <field name="inherit_id" ref="pesantren_kesantrian.view_cdn_santri_form"/>
+            <field name="inherit_id" ref="pesantren_kesantrian.view_cdn_santri_form" />
             <field name="arch" type="xml">
                 <!-- Add button to header for VA creation -->
                 <xpath expr="//header" position="inside">
                     <!-- Button Buat VA - hanya tampil jika belum ada VA dan sudah ada NIS -->
-                    <button name="action_create_permanent_va" type="object" 
-                            string="Buat VA" class="oe_highlight" 
-                            invisible="va_saku or not nis"
-                            groups="pesantren_kesantrian.group_kesantrian_staff"/>
+                    <button name="action_create_permanent_va" type="object"
+                        string="Buat VA" class="oe_highlight"
+                        invisible="va_saku or not nis"
+                        groups="pesantren_kesantrian.group_kesantrian_staff" />
                     <!-- Button VA Info - tampil jika sudah ada VA (untuk lihat info) -->
-                    <button name="action_topup_smart_billing" type="object" 
-                            string="Info VA" class="btn-secondary" 
-                            invisible="not va_saku"
-                            groups="pesantren_kesantrian.group_kesantrian_staff"/>
+                    <button name="action_topup_smart_billing" type="object"
+                        string="Info VA" class="btn-secondary"
+                        invisible="not va_saku"
+                        groups="pesantren_kesantrian.group_kesantrian_staff" />
                 </xpath>
-                
+
                 <!-- Add Smart Billing smart button -->
                 <xpath expr="//div[@name='button_box']" position="inside">
-                    <button name="action_view_smart_billing_transactions" type="object" class="oe_stat_button" icon="fa-credit-card">
-                        <field name="smart_billing_transaction_count" widget="statinfo" string="Transaksi"/>
+                    <button name="action_view_smart_billing_transactions" type="object"
+                        class="oe_stat_button" icon="fa-credit-card">
+                        <field name="smart_billing_transaction_count" widget="statinfo"
+                            string="Transaksi" />
                     </button>
                 </xpath>
-                
+
                 <!-- Add VA section in form -->
                 <xpath expr="//notebook" position="inside">
                     <page string="Smart Billing / VA" name="smart_billing_page">
                         <group>
                             <group string="Virtual Account Saku (Permanen)">
-                                <field name="va_saku" readonly="1"/>
-                                <field name="va_saku_bank" readonly="1"/>
-                                <field name="va_saku_expiry" readonly="1" decoration-danger="va_saku_expiry and va_saku_expiry &lt; current_date"/>
-                                
+                                <field name="va_saku" readonly="1" />
+                                <field name="va_saku_bank" readonly="1" />
+                                <field name="va_saku_expiry" readonly="1"
+                                    decoration-danger="va_saku_expiry and va_saku_expiry &lt; current_date" />
+
                                 <!-- Warning jika VA expired -->
-                                <div class="alert alert-danger" role="alert" invisible="not va_saku or not va_saku_expiry or va_saku_expiry &gt;= current_date">
+                                <div class="alert alert-danger" role="alert"
+                                    invisible="not va_saku or not va_saku_expiry or va_saku_expiry &gt;= current_date">
                                     <strong>⚠️ VA SUDAH KADALUARSA!</strong>
-                                    <p class="mb-0">Orang tua tidak bisa transfer ke VA ini lagi. Silakan perpanjang VA dengan klik tombol "Perpanjang VA" di bawah.</p>
+                                    <p class="mb-0">Orang tua tidak bisa transfer ke VA ini lagi.
+                                        Silakan perpanjang VA dengan klik tombol "Perpanjang VA" di
+                                        bawah.</p>
                                 </div>
-                                
+
                                 <div class="mt-2">
                                     <!-- Tombol buat VA (jika belum ada) -->
-                                    <button name="action_create_permanent_va" type="object" 
-                                            string="🏦 Buat VA Permanen" class="btn-primary me-2" 
-                                            invisible="va_saku"/>
-                                    
+                                    <button name="action_create_permanent_va" type="object"
+                                        string="🏦 Buat VA Permanen" class="btn-primary me-2"
+                                        invisible="va_saku" />
+
                                     <!-- Tombol perpanjang VA (jika sudah kadaluarsa) -->
-                                    <button name="action_renew_permanent_va" type="object" 
-                                            string="🔄 Perpanjang VA" class="btn-warning me-2" 
-                                            invisible="not va_saku or not va_saku_expiry or va_saku_expiry &gt;= current_date"/>
-                                    
+                                    <button name="action_renew_permanent_va" type="object"
+                                        string="🔄 Perpanjang VA" class="btn-warning me-2"
+                                        invisible="not va_saku or not va_saku_expiry or va_saku_expiry &gt;= current_date" />
+
                                     <!-- Tombol info top-up (jika VA aktif) -->
-                                    <button name="action_topup_smart_billing" type="object" 
-                                            string="💰 Info Top-up" class="btn-secondary me-2" 
-                                            invisible="not va_saku or (va_saku_expiry and va_saku_expiry &lt; current_date)"/>
-                                    
+                                    <button name="action_topup_smart_billing" type="object"
+                                        string="💰 Info Top-up" class="btn-secondary me-2"
+                                        invisible="not va_saku or (va_saku_expiry and va_saku_expiry &lt; current_date)" />
+
                                     <!-- Tombol kirim WA (jika VA aktif) -->
-                                    <button name="action_send_va_whatsapp" type="object" 
-                                            string="📱 Kirim ke WhatsApp Ortu" class="btn-success" 
-                                            invisible="not va_saku or (va_saku_expiry and va_saku_expiry &lt; current_date)"/>
+                                    <button name="action_send_va_whatsapp" type="object"
+                                        string="📱 Kirim ke WhatsApp Ortu" class="btn-success"
+                                        invisible="not va_saku or (va_saku_expiry and va_saku_expiry &lt; current_date)" />
                                 </div>
                             </group>
                             <group string="Batasan Penggunaan Saldo (POS Canteen)">
-                                <field name="is_limit_active" groups="pesantren_kesantrian.group_kesantrian_staff"/>
-                                <field name="limit" invisible="not is_limit_active" groups="pesantren_kesantrian.group_kesantrian_staff"/>
-                                <field name="amount" widget="monetary" invisible="not is_limit_active" groups="pesantren_kesantrian.group_kesantrian_staff"/>
-                                <field name="used_amount" widget="monetary" invisible="not is_limit_active" groups="pesantren_kesantrian.group_kesantrian_staff"/>
-                                <field name="remaining_limit" widget="monetary" invisible="not is_limit_active" decoration-danger="remaining_limit == 0" decoration-warning="remaining_limit &lt; 10000" groups="pesantren_kesantrian.group_kesantrian_staff"/>
-                                <field name="limit_reset_date" invisible="not is_limit_active" groups="pesantren_kesantrian.group_kesantrian_staff"/>
-                                
-                                <div class="mt-2" groups="pesantren_kesantrian.group_kesantrian_staff">
-                                    <button name="action_setlimit" type="object" 
-                                            string="⚙️ Atur Limit" class="btn-secondary"/>
+                                <field name="is_limit_active"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff" />
+                                <field name="limit" invisible="not is_limit_active"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff"
+                                    readonly="1" />
+                                <field name="amount" widget="monetary"
+                                    invisible="not is_limit_active"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff"
+                                    readonly="1" />
+                                <field name="used_amount" widget="monetary"
+                                    invisible="not is_limit_active"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff"
+                                    readonly="1" />
+                                <field name="remaining_limit" widget="monetary"
+                                    invisible="not is_limit_active"
+                                    decoration-danger="remaining_limit == 0"
+                                    decoration-warning="remaining_limit &lt; 10000"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff"
+                                    readonly="1" />
+                                <field name="limit_reset_date" invisible="not is_limit_active"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff" />
+
+                                <div class="mt-2"
+                                    groups="pesantren_kesantrian.group_kesantrian_staff">
+                                    <button name="action_setlimit" type="object"
+                                        string="⚙️ Atur Limit" class="btn-secondary" />
                                 </div>
                             </group>
                         </group>
@@ -83,14 +105,18 @@
                             <group string="Keterangan">
                                 <div class="alert alert-info" role="alert">
                                     <strong>Virtual Account Permanen</strong>
-                                    <p>VA Permanen memungkinkan orang tua untuk top-up saldo uang saku kapan saja dengan nominal bebas.</p>
-                                    <p>Setelah VA dibuat, orang tua cukup transfer ke nomor VA tersebut dan saldo anak akan otomatis bertambah.</p>
-                                    <hr/>
+                                    <p>VA Permanen memungkinkan orang tua untuk top-up saldo uang
+                                        saku kapan saja dengan nominal bebas.</p>
+                                    <p>Setelah VA dibuat, orang tua cukup transfer ke nomor VA
+                                        tersebut dan saldo anak akan otomatis bertambah.</p>
+                                    <hr />
                                     <strong>Masa Berlaku VA:</strong>
                                     <ul class="mb-0">
                                         <li>VA berlaku selama <strong>1 tahun</strong> sejak dibuat</li>
-                                        <li>Jika VA sudah kadaluarsa, orang tua <strong>tidak bisa transfer</strong> ke VA tersebut</li>
-                                        <li>Admin harus <strong>perpanjang VA</strong> dan kirim info VA baru ke orang tua</li>
+                                        <li>Jika VA sudah kadaluarsa, orang tua <strong>tidak bisa
+                                            transfer</strong> ke VA tersebut</li>
+                                        <li>Admin harus <strong>perpanjang VA</strong> dan kirim
+                                            info VA baru ke orang tua</li>
                                     </ul>
                                 </div>
                             </group>
@@ -99,17 +125,17 @@
                 </xpath>
             </field>
         </record>
-        
+
         <!-- Add server action for batch WhatsApp sending -->
         <record id="action_send_va_whatsapp_batch" model="ir.actions.server">
             <field name="name">📱 Kirim VA ke WhatsApp</field>
-            <field name="model_id" ref="pesantren_kesantrian.model_cdn_siswa"/>
-            <field name="binding_model_id" ref="pesantren_kesantrian.model_cdn_siswa"/>
+            <field name="model_id" ref="pesantren_kesantrian.model_cdn_siswa" />
+            <field name="binding_model_id" ref="pesantren_kesantrian.model_cdn_siswa" />
             <field name="binding_view_types">list</field>
             <field name="state">code</field>
             <field name="code">
-if records:
-    action = records.action_send_va_whatsapp()
+                if records:
+                action = records.action_send_va_whatsapp()
             </field>
         </record>
     </data>

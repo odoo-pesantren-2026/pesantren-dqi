@@ -5,45 +5,55 @@
         <record id="cdn_siswa_form_inherit" model="ir.ui.view">
             <field name="name">cdn.siswa.inherit.view.form</field>
             <field name="model">cdn.siswa</field>
-            <field name="inherit_id" ref="pesantren_base.view_cdn_siswa_form"/>
+            <field name="inherit_id" ref="pesantren_base.view_cdn_siswa_form" />
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='info_siswa']" position="inside">
                     <group invisible="status_akun != 'aktif'" string="Dompet Santri">
                         <group>
-                            <field name="va_saku" string="Virtual Account"/>
-                            <field name="saldo_uang_saku" string="Saldo Santri" readonly="1" widget="integer"/>
-                            <field name="limit" string="Periode Limit" readonly="1"/>
+                            <field name="va_saku" string="Virtual Account" />
+                            <field name="saldo_uang_saku" string="Saldo Santri" readonly="1"
+                                widget="integer" />
+                            <field name="limit" string="Periode Limit" readonly="1" />
                         </group>
-                            <group>
-                                <field name="used_amount" readonly="1" string="Jumlah Terpakai"/>
-                                <field name="remaining_limit" readonly="1" string="Sisa Limit"/>
-                                <field name="limit_reset_date" readonly="1" string="Tanggal Reset Limit"/>
+                        <group>
+                            <field name="used_amount" readonly="1" string="Jumlah Terpakai" />
+                            <field name="remaining_limit" readonly="1" string="Sisa Limit" />
+                            <field name="limit_reset_date" readonly="1" string="Tanggal Reset Limit" />
                             <div>
-                                <button name="action_setlimit" string="Atur Limit" type="object" class="btn btn-secondary" context="{'search_default_partner_id': id}" groups="pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit"/>
-                                <div class="alert alert-warning" role="alert" groups="!pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit">
+                                <button name="action_setlimit" string="Atur Limit" type="object"
+                                    class="btn btn-secondary"
+                                    context="{'search_default_partner_id': id}"
+                                    groups="pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit" />
+                                <div class="alert alert-warning" role="alert"
+                                    groups="!pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit">
                                     <i class="fa fa-exclamation-triangle me-2"></i>
-                                    <span>Anda tidak memiliki akses untuk mengatur limit saldo santri</span>
+                                    <span>Anda tidak memiliki akses untuk mengatur limit saldo
+                                        santri</span>
                                 </div>
                             </div>
                         </group>
                     </group>
                     <group invisible="status_akun == 'aktif'" string="Dompet Santri">
-                        <div invisible="status_akun in ('aktif','blokir')" class="alert alert-danger" role="alert">
+                        <div invisible="status_akun in ('aktif','blokir')"
+                            class="alert alert-danger" role="alert">
                             <i class="fa fa-exclamation-triangle me-2"></i>
-                            <span>Akun santri ini saat ini <b>Nonaktif</b>. Transaksi tidak dapat diproses. Silakan hubungi pengurus pesantren.</span>
+                            <span>Akun santri ini saat ini <b>Nonaktif</b>. Transaksi tidak dapat
+                                diproses. Silakan hubungi pengurus pesantren.</span>
                         </div>
-                        <div invisible="status_akun != 'blokir'" class="alert alert-danger" role="alert">
+                        <div invisible="status_akun != 'blokir'" class="alert alert-danger"
+                            role="alert">
                             <i class="fa fa-exclamation-triangle me-2"></i>
-                            <span>Akun santri ini sedang dalam kondisi <b>Diblokir</b>. Silakan hubungi pengurus untuk informasi lebih lanjut.</span>
+                            <span>Akun santri ini sedang dalam kondisi <b>Diblokir</b>. Silakan
+                                hubungi pengurus untuk informasi lebih lanjut.</span>
                         </div>
                     </group>
                     <group invisible="status_akun == 'aktif'">
                         <group>
-                            <field name="status_akun" readonly="1"/>
-                            <field name="alasan_akun" readonly="1"/>
+                            <field name="status_akun" readonly="1" />
+                            <field name="alasan_akun" readonly="1" />
                         </group>
                         <group>
-                            <field name="catatan_akun" readonly="1"/>
+                            <field name="catatan_akun" readonly="1" />
                         </group>
                     </group>
                 </xpath>
@@ -53,45 +63,55 @@
         <record id="cdn_santri_form_inherit" model="ir.ui.view">
             <field name="name">cdn.santri.inherit.view.form</field>
             <field name="model">cdn.siswa</field>
-            <field name="inherit_id" ref="pesantren_kesantrian.view_cdn_santri_form"/>
+            <field name="inherit_id" ref="pesantren_kesantrian.view_cdn_santri_form" />
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='info_santri']" position="inside">
                     <group invisible="status_akun != 'aktif'" string="Dompet Santri">
                         <group>
-                            <field name="va_saku" string="Virtual Account"/>
-                            <field name="saldo_uang_saku" string="Saldo Santri" readonly="1" widget="integer"/>
-                            <field name="limit" string="Periode Limit" readonly="1"/>
+                            <field name="va_saku" string="Virtual Account" />
+                            <field name="saldo_uang_saku" string="Saldo Santri" readonly="1"
+                                widget="integer" />
+                            <field name="limit" string="Periode Limit" readonly="1" />
                         </group>
-                            <group>
-                                <field name="used_amount" readonly="1" string="Jumlah Terpakai"/>
-                                <field name="remaining_limit" readonly="1" string="Sisa Limit"/>
-                                <field name="limit_reset_date" readonly="1" string="Tanggal Reset Limit"/>
+                        <group>
+                            <field name="used_amount" readonly="1" string="Jumlah Terpakai" />
+                            <field name="remaining_limit" readonly="1" string="Sisa Limit" />
+                            <field name="limit_reset_date" readonly="1" string="Tanggal Reset Limit" />
                             <div>
-                                <button name="action_setlimit" string="Atur Limit" type="object" class="btn btn-secondary" context="{'search_default_partner_id': id}" groups="pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit"/>
-                                <div class="alert alert-warning" role="alert" groups="!pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit">
+                                <button name="action_setlimit" string="Atur Limit" type="object"
+                                    class="btn btn-secondary"
+                                    context="{'search_default_partner_id': id}"
+                                    groups="pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit" />
+                                <div class="alert alert-warning" role="alert"
+                                    groups="!pesantren_kesantrian.group_kesantrian_orang_tua_acces_limit">
                                     <i class="fa fa-exclamation-triangle me-2"></i>
-                                    <span>Anda tidak memiliki akses untuk mengatur limit saldo santri</span>
+                                    <span>Anda tidak memiliki akses untuk mengatur limit saldo
+                                        santri</span>
                                 </div>
                             </div>
                         </group>
                     </group>
                     <group invisible="status_akun == 'aktif'" string="Dompet Santri">
-                        <div invisible="status_akun in ('aktif','blokir')" class="alert alert-danger" role="alert">
+                        <div invisible="status_akun in ('aktif','blokir')"
+                            class="alert alert-danger" role="alert">
                             <i class="fa fa-exclamation-triangle me-2"></i>
-                            <span>Akun santri ini saat ini <b>Nonaktif</b>. Transaksi tidak dapat diproses. Silakan hubungi pengurus pesantren.</span>
+                            <span>Akun santri ini saat ini <b>Nonaktif</b>. Transaksi tidak dapat
+                                diproses. Silakan hubungi pengurus pesantren.</span>
                         </div>
-                        <div invisible="status_akun != 'blokir'" class="alert alert-danger" role="alert">
+                        <div invisible="status_akun != 'blokir'" class="alert alert-danger"
+                            role="alert">
                             <i class="fa fa-exclamation-triangle me-2"></i>
-                            <span>Akun santri ini sedang dalam kondisi <b>Diblokir</b>. Silakan hubungi pengurus untuk informasi lebih lanjut.</span>
+                            <span>Akun santri ini sedang dalam kondisi <b>Diblokir</b>. Silakan
+                                hubungi pengurus untuk informasi lebih lanjut.</span>
                         </div>
                     </group>
                     <group invisible="status_akun == 'aktif'">
                         <group>
-                            <field name="status_akun" readonly="1"/>
-                            <field name="alasan_akun" readonly="1"/>
+                            <field name="status_akun" readonly="1" />
+                            <field name="alasan_akun" readonly="1" />
                         </group>
                         <group>
-                            <field name="catatan_akun" readonly="1"/>
+                            <field name="catatan_akun" readonly="1" />
                         </group>
                     </group>
                 </xpath>
@@ -106,7 +126,9 @@
             <field name="arch" type="xml">
                 Add your xpath here
                 <xpath expr="//button[@name='action_saldo_tagihan']" position="after">
-                    <button class="oe_stat_button" type="object" name="action_view_pos_order" groups="point_of_sale.group_pos_user,pesantren_kesantrian.group_kesantrian_orang_tua" context="{'default_partner_id': id}" invisible="0" icon="fa-shopping-bag">
+                    <button class="oe_stat_button" type="object" name="action_view_pos_order"
+        groups="point_of_sale.group_pos_user,pesantren_kesantrian.group_kesantrian_orang_tua"
+        context="{'default_partner_id': id}" invisible="0" icon="fa-shopping-bag">
                         <field string="POS Orders" name="pos_order_count" widget="statinfo"/>
                     </button>
                 </xpath>
@@ -116,12 +138,14 @@
         <record id="view_cdn_siswa_form_inherit" model="ir.ui.view">
             <field name="name">cdn.siswa.form.inherit</field>
             <field name="model">cdn.siswa</field>
-            <field name="inherit_id" ref="pesantren_base.view_cdn_siswa_form"/>
+            <field name="inherit_id" ref="pesantren_base.view_cdn_siswa_form" />
             <!-- Ganti 'module_name' dengan nama modul yang berisi view form siswa -->
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside">
                     <!-- Hidden: button tidak berfungsi dengan API -->
-                    <button name="create_data_account" string="Buat Akun VA" type="object" class="btn-primary" invisible="1" groups="pesantren_kesantrian.group_kesantrian_staff"/>
+                    <button name="create_data_account" string="Buat Akun VA" type="object"
+                        class="btn-primary" invisible="1"
+                        groups="pesantren_kesantrian.group_kesantrian_staff" />
                 </xpath>
             </field>
         </record>
@@ -129,12 +153,14 @@
         <record id="view_cdn_santri_form_inherit" model="ir.ui.view">
             <field name="name">cdn.santri.form.inherit</field>
             <field name="model">cdn.siswa</field>
-            <field name="inherit_id" ref="pesantren_kesantrian.view_cdn_santri_form"/>
+            <field name="inherit_id" ref="pesantren_kesantrian.view_cdn_santri_form" />
             <!-- Ganti 'module_name' dengan nama modul yang berisi view form siswa -->
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside">
                     <!-- Hidden: button tidak berfungsi dengan API -->
-                    <button name="create_data_account" string="Buat Akun VA" type="object" class="btn-primary" invisible="1" groups="pesantren_kesantrian.group_kesantrian_staff"/>
+                    <button name="create_data_account" string="Buat Akun VA" type="object"
+                        class="btn-primary" invisible="1"
+                        groups="pesantren_kesantrian.group_kesantrian_staff" />
                 </xpath>
             </field>
         </record>

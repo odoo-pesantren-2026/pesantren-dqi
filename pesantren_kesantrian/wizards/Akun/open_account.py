@@ -3,22 +3,30 @@ from odoo.exceptions import UserError
 from odoo.exceptions import ValidationError, UserError
 from datetime import datetime, timedelta
 
+
 class OpenAccount(models.TransientModel):
     _name = "wizard.open.account"
 
     def _get_noactive_account(self):
         return [('status_akun', '=', 'nonaktif')]
 
-    santri_id = fields.Many2one('cdn.siswa', string="Santri", domain=_get_noactive_account , required=True)
-    kelas_id    = fields.Many2one('cdn.ruang_kelas', string='Kelas', related='santri_id.ruang_kelas_id', readonly=True)
-    kamar_id    = fields.Many2one('cdn.kamar_santri', string='Kamar', related='santri_id.kamar_id', readonly=True)
-    halaqoh_id  = fields.Many2one('cdn.halaqoh', string='Halaqoh', related='santri_id.halaqoh_id', readonly=True)
-    musyrif_id  = fields.Many2one('hr.employee', string='Musyrif', related='santri_id.musyrif_id', readonly=True)
-    kartu_santri = fields.Char(string="Kartu", required=True)
-    status       = fields.Selection(string="Status" , related='santri_id.status_akun',readonly=True)
-    alasan       = fields.Char(string="Alasan" , related='santri_id.alasan_akun',readonly=True)
-    catatan       = fields.Text(string="Catatan" , related='santri_id.catatan_akun',readonly=True)
-
+    santri_id = fields.Many2one(
+        'cdn.siswa', string="Santri", domain=_get_noactive_account, required=True)
+    kelas_id = fields.Many2one(
+        'cdn.ruang_kelas', string='Kelas', related='santri_id.ruang_kelas_id', readonly=True)
+    kamar_id = fields.Many2one(
+        'cdn.kamar_santri', string='Kamar', related='santri_id.kamar_id', readonly=True)
+    halaqoh_id = fields.Many2one(
+        'cdn.halaqoh', string='Halaqoh', related='santri_id.halaqoh_id', readonly=True)
+    musyrif_id = fields.Many2one(
+        'hr.employee', string='Musyrif', related='santri_id.musyrif_id', readonly=True)
+    kartu_santri = fields.Char(string="Kartu", required=False)
+    status = fields.Selection(
+        string="Status", related='santri_id.status_akun', readonly=True)
+    alasan = fields.Char(
+        string="Alasan", related='santri_id.alasan_akun', readonly=True)
+    catatan = fields.Text(
+        string="Catatan", related='santri_id.catatan_akun', readonly=True)
 
     @api.onchange('santri_id')
     def _onchange_santri_id(self):
@@ -62,11 +70,9 @@ class OpenAccount(models.TransientModel):
             else:
                 self.santri_id = santri.id
 
-                
-
     def action_submit(self):
         self.santri_id.sudo().write({
-            'status_akun' : 'aktif'
+            'status_akun': 'aktif'
         })
 
         message = f"Akun santri {self.santri_id.name} telah berhasil di aktifkan kembali"
@@ -78,13 +84,13 @@ class OpenAccount(models.TransientModel):
                 'title': '✅ Akun Berhasil DiAktifkan',
                 'sticky': False,
                 'type': 'success',
-                'timeout': 8000 
+                'timeout': 8000
             }
         )
 
         return {
             'type': 'ir.actions.act_window',
-            'res_model': 'wizard.open.account',  
+            'res_model': 'wizard.open.account',
             'view_mode': 'form',
             'target': 'new',
             'name': 'Aktifkan Akun',

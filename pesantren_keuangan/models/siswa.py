@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 
 
 class SiswaInherit(models.Model):
@@ -244,7 +245,7 @@ class SiswaInherit(models.Model):
             })
 
         remaining = self.amount - self.used_amount
-        if amount > remaining:
+        if float_compare(amount, remaining, precision_digits=0) > 0:
             limit_periode = {
                 'hari': 'Harian',
                 'minggu': 'Mingguan',
