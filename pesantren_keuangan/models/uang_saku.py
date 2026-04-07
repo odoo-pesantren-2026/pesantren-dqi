@@ -59,9 +59,6 @@ class UangSaku(models.Model):
         readonly=True,
         store=True
     )
-    # musyrif_id = fields.Many2one('hr.employee', string='Musyrif', related='siswa.musyrif_id', readonly=True)
-
-    # Perbaiki fungsi _compute_siswa
 
     @api.depends('siswa_id')
     def _compute_siswa(self):
@@ -142,16 +139,6 @@ class UangSaku(models.Model):
                         'message': f"Transaksi tidak dapat diproses karena akun santri bernama {siswa} saat ini berstatus {status}. Mohon hubungi pengurus pesantren untuk informasi lebih lanjut."
                     }
                 }
-
-    # # Field untuk Group By per minggu
-    # week_tgl_transaksi = fields.Char(string='Minggu Transaksi', compute='_compute_week_tgl_transaksi', store=True)
-
-    # @api.depends('tgl_transaksi')
-    # def _compute_week_tgl_transaksi(self):
-    #     for record in self:
-    #         if record.tgl_transaksi:
-    #             record.week_tgl_transaksi = record.tgl_transaksi.strftime('%Y-W%U')
-    #             # Contoh hasil: '2025-W11' (Tahun 2025, Minggu ke-11)
 
     # override
     @api.model
@@ -245,13 +232,6 @@ class UangSaku(models.Model):
                 'saldo_uang_saku': rec.siswa_id.calculate_saku(),
             })
 
-            # rec.env['pos.wallet.transaction'].sudo().create({
-            #     'wallet_type': 'kas',
-            #     'reference': 'manual',
-            #     'amount': rec.amount_in,
-            #     'partner_id': Partner.id,
-            #     'currency_id': Partner.property_product_pricelist.currency_id.id,
-            # })
             rec.kirim_email_pemberitahuan()
 
     def kirim_email_pemberitahuan(self):

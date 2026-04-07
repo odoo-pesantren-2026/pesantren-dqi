@@ -202,13 +202,16 @@ class SmartBillingController(http.Controller):
     def _verify_bsi_auth_signature(self, data, signature):
         """Verify BSI auth signature using their public key"""
         try:
-            # Skip verification if mockup mode is enabled
             ICP = request.env['ir.config_parameter'].sudo()
+            is_production = ICP.get_param(
+                'smart_billing.is_production', 'False') == 'True'
             use_mockup = ICP.get_param(
                 'smart_billing.bsi_use_mockup', 'False') == 'True'
-            if use_mockup:
+
+            # Mockup mode hanya diizinkan di NON-PRODUKSI
+            if use_mockup and not is_production:
                 _logger.info(
-                    "[BSI AUTH] Mockup mode enabled, skipping signature verification")
+                    "[BSI AUTH] Mockup mode enabled (non-production), skipping signature verification")
                 return True
 
             from cryptography.hazmat.primitives import hashes, serialization
@@ -228,10 +231,9 @@ class SmartBillingController(http.Controller):
             )
             return True
         except ImportError:
-            # cryptography not installed, skip verification
-            _logger.warning(
-                "[BSI] cryptography library not installed, skipping signature verification")
-            return True
+            _logger.error(
+                "[BSI] Critical: cryptography library not installed. Cannot verify signature.")
+            return False
         except Exception as e:
             _logger.error(f"[BSI] Signature verification error: {e}")
             return False
@@ -240,13 +242,15 @@ class SmartBillingController(http.Controller):
         """Verify SNAP BI signature using HMAC-SHA512"""
         try:
             ICP = request.env['ir.config_parameter'].sudo()
-
-            # Skip signature verification if mockup mode is enabled
+            is_production = ICP.get_param(
+                'smart_billing.is_production', 'False') == 'True'
             use_mockup = ICP.get_param(
                 'smart_billing.bsi_use_mockup', 'False') == 'True'
-            if use_mockup:
+
+            # Mockup mode hanya diizinkan di NON-PRODUKSI
+            if use_mockup and not is_production:
                 _logger.info(
-                    "[BSI] Mockup mode enabled, skipping signature verification")
+                    "[BSI] Mockup mode enabled (non-production), skipping signature verification")
                 return True
 
             client_secret = ICP.get_param(
@@ -254,8 +258,8 @@ class SmartBillingController(http.Controller):
 
             if not client_secret:
                 _logger.warning(
-                    "[BSI] Client secret not configured, skipping signature verification")
-                return True
+                    "[BSI] Client secret not configured. Failing verification.")
+                return False
 
             # Hash of request body
             body_str = json.dumps(body) if isinstance(
@@ -343,10 +347,12 @@ class SmartBillingController(http.Controller):
 
         # First, try to find by smart billing transaction (most specific)
         # Search by name (contains customer_no in format) or va_number
+        # Gunakan '=' untuk pencocokan persis agar tidak salah menemukan transaksi lain
+        # yang mengandung angka yang sama (misal '123' tidak sengaja menemukan '12345')
         transaction = request.env['smart.billing.transaction'].sudo().search([
             '|',
-            ('name', 'ilike', customer_no),
-            ('va_number', 'ilike', customer_no),
+            ('name', '=', customer_no),
+            ('va_number', '=', customer_no),
         ], limit=1)
 
         if transaction:

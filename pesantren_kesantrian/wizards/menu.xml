@@ -1,28 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0"> 
+    <data noupdate="0">
         <!-- Index -->
-        <menuitem id="wizard_cari_santri" groups="pesantren_base.group_sekolah_admin" action="odoo_custom_dashboard_master.action_owl_wallet_dashboard" name="Santri" web_icon="pesantren_base,static/description/santri.png" sequence="5"/>
-        <!-- <menuitem id="wizard_cari_santri" groups="pesantren_base.group_sekolah_admin" name="Santri" web_icon="pesantren_base,static/description/santri.png" sequence="5"/> -->
+        <menuitem id="wizard_cari_santri" groups="pesantren_base.group_sekolah_admin"
+            action="odoo_custom_dashboard_master.action_owl_wallet_dashboard" name="Santri"
+            web_icon="pesantren_base,static/description/santri.png" sequence="5" />
 
         <!-- Santri -->
-        <menuitem id="wizard_get_santri" name="Santri" parent="wizard_cari_santri" action="action_wizard_get_santri" sequence="5"/>
+        <menuitem id="wizard_get_santri" name="Santri" parent="wizard_cari_santri"
+            action="action_wizard_get_santri" sequence="5" />
 
         <!-- Register Kartu -->
-        <menuitem id="wizard_register_kartu_santri" name="Pendaftaran Kartu" action="action_wizard_register_kartu" parent="wizard_cari_santri" sequence="6"/>
+        <menuitem id="wizard_register_kartu_santri" name="Pendaftaran Kartu"
+            action="action_wizard_register_kartu" parent="wizard_cari_santri" sequence="6" />
 
         <!-- Akun Santri -->
-        <menuitem id="wizard_akun_santri" name="Akun Santri" parent="wizard_cari_santri" sequence="7">
-            <menuitem id="wizard_keuangan_santri" name="Keuangan" sequence="5"/>
-            <menuitem id="wizard_pengaturan_akun_santri" name="Pengaturan Akun" sequence="5"/>
+        <menuitem id="wizard_akun_santri" name="Akun Santri" parent="wizard_cari_santri"
+            sequence="7">
+            <menuitem id="wizard_keuangan_santri" name="Keuangan" sequence="5" />
+            <menuitem id="wizard_pengaturan_akun_santri" name="Pengaturan Akun" sequence="5" />
         </menuitem>
 
         <!-- Children -->
-        <menuitem id="wizard_akun_pencairan_saldo" name="Pencairan Saldo" action="action_wizard_pencairan_saldo" parent="wizard_keuangan_santri" sequence="10"/>
-        <menuitem id="wizard_akun_penonaktifan_saldo" name="Penonaktifan Akun" action="action_wizard_penonaktifan_saldo" parent="wizard_pengaturan_akun_santri" sequence="15"/>
-        <menuitem id="wizard_blokir_saldo_santri" name="Pemblokir Akun" action="action_wizard_blokir_saldo" parent="wizard_pengaturan_akun_santri" sequence="20"/> 
-        <menuitem id="wizard_open_account" name="Pengaktifkan Akun" action="action_wizard_open_account" parent="wizard_pengaturan_akun_santri" sequence="25"/> 
-        <menuitem id="wizard_open_block" name="Pembukaan Blokir" action="action_wizard_open_block" parent="wizard_pengaturan_akun_santri" sequence="30"/> 
+        <menuitem id="wizard_akun_pencairan_saldo" name="Pencairan Saldo"
+            action="action_wizard_pencairan_saldo" parent="wizard_keuangan_santri" sequence="10" />
+        <menuitem id="wizard_akun_penonaktifan_saldo" name="Penonaktifan Akun"
+            action="action_wizard_penonaktifan_saldo" parent="wizard_pengaturan_akun_santri"
+            sequence="15" />
+        <menuitem id="wizard_blokir_saldo_santri" name="Pemblokir Akun"
+            action="action_wizard_blokir_saldo" parent="wizard_pengaturan_akun_santri" sequence="20" />
+        <menuitem id="wizard_open_account" name="Pengaktifkan Akun"
+            action="action_wizard_open_account" parent="wizard_pengaturan_akun_santri" sequence="25" />
+        <menuitem id="wizard_open_block" name="Pembukaan Blokir" action="action_wizard_open_block"
+            parent="wizard_pengaturan_akun_santri" sequence="30" />
 
         <!-- Kelola PIN Dompet Action -->
         <record id="action_kelola_pin_menu" model="ir.actions.act_window">
@@ -32,6 +42,9 @@
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
-        <menuitem id="wizard_kelola_pin" name="Kelola PIN Dompet" action="action_kelola_pin_menu" parent="wizard_pengaturan_akun_santri" sequence="35"/>
+        <menuitem id="wizard_kelola_pin" name="Kelola PIN Dompet" action="action_kelola_pin_menu"
+            parent="wizard_pengaturan_akun_santri" sequence="35" />
+        <menuitem id="wizard_delete_va" name="Hapus VA Santri" action="action_wizard_delete_va"
+            parent="wizard_pengaturan_akun_santri" sequence="40" />
     </data>
 </odoo>

@@ -259,8 +259,15 @@ class BSIProvider(models.AbstractModel):
         config = self._validate_config()
 
         # Generate customer_no from order_id (remove non-alphanumeric)
-        customer_no = ''.join(filter(str.isalnum, order_id)
-                              )[-12:]  # Max 12 digits
+        # Menghasilkan customer_no dari order_id (hanya angka untuk VA)
+        # Jika order_id tidak memiliki cukup angka unik, gunakan hash numerik
+        digits_only = ''.join(filter(str.isdigit, order_id))
+        if len(digits_only) < 6:
+            # Gunakan 12 digit terakhir dari hash MD5 (numerik) untuk menjamin keunikan
+            customer_no = str(
+                int(hashlib.md5(order_id.encode()).hexdigest(), 16))[-12:]
+        else:
+            customer_no = digits_only[-12:]
         virtual_account = self._generate_virtual_account(customer_no)
 
         expiry_time = self._format_datetime_expired(config['expiry_duration'])

@@ -22,7 +22,8 @@
                            placeholder.translate="Search Customers..."
                            icon="{type: 'fa', value: 'fa-search'}"
                            autofocus="true"
-                           debounceMillis="100"
+                           debounceMillis="50"
+                           t-on-input="_onSearchInputChange"
                            t-on-keydown="handleEnterKey" />
                     <button class="btn btn-secondary btn-lg lh-lg o-default-button ms-2" 
                                 t-on-click="BarCodeSantri">
@@ -46,7 +47,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-foreach="getPartners()" t-as="partner" t-key="partner.id">
+                        <t t-foreach="state.partners || getPartners()" t-as="partner" t-key="partner.id">
                             <PartnerLine
                                 close="props.close"
                                 partner="partner"
@@ -60,7 +61,7 @@
                     </tbody>
                 </table>
                 <div t-if="state.query" class="search-more-button d-flex justify-content-center my-2">
-                    <button class="btn btn-lg btn-primary" t-on-click="onEnter">Search more</button>
+                    <button class="btn btn-lg btn-primary" t-on-click="() => this.onEnter()">Search more</button>
                 </div>
                 <t t-set-slot="footer">
                     <div class="d-flex justify-content-start flex-wrap gap-2 w-100">

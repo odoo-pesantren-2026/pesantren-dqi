@@ -13,28 +13,25 @@ patch(PosStore.prototype, {
 
         // If not handled by standard barcode reader, check if it's a VA
         console.log("Processing custom barcode for VA:", code);
-        
+
         try {
-            // Search for partner with this VA or VA Saku
-            // Since we loaded these fields in pos_session, we can search in local partners
-            const partner = this.models["res.partner"].find(
+            // 1. Check in local partners first
+            let partner = this.models["res.partner"].find(
                 (p) => p.virtual_account === code || p.va_saku === code || p.barcode === code
             );
 
             if (partner) {
                 this.get_order().set_partner(partner);
-                console.log("Partner selected via VA scan:", partner.name);
                 return true;
             }
 
-            // If not found in local, try to fetch from server as fallback
+            // 2. Fallback: Search from server
             const response = await rpc('/siswa/get_data/bar', { barcode: code });
             if (response && response.partner_id) {
-                const fetchedPartner = this.models["res.partner"].get(response.partner_id);
-                if (fetchedPartner) {
-                    this.get_order().set_partner(fetchedPartner);
-                    return true;
-                }
+                // If not in local store, try to use the response data directly.
+                // Odoo 17's set_partner can often handle these the same way as records.
+                this.get_order().set_partner(response);
+                return true;
             }
         } catch (error) {
             console.error("Error processing VA barcode:", error);

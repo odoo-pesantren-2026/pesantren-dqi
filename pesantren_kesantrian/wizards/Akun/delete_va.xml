@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="wizard_delete_va_form" model="ir.ui.view">
+            <field name="name">wizard.delete.va.form</field>
+            <field name="model">wizard.delete.va</field>
+            <field name="arch" type="xml">
+                <form string="Hapus Virtual Account">
+                    <div invisible="not santri_id" class="alert alert-danger w-100" role="alert" style="margin-bottom: 0;">
+                        <strong>⚠️ Peringatan!</strong> Tindakan ini akan <strong>menghapus permanen</strong> Virtual Account santri di sistem Bank (BSI) dan Odoo. VA yang sudah dihapus tidak dapat digunakan lagi untuk pembayaran atau top-up.
+                    </div>
+                    <group string="Santri">
+                        <group>
+                            <field name="kartu_santri" placeholder="Scan kartu santri..." />
+                            <field name="santri_id" string="Santri" options="{'no_create_edit':True, 'no_create':True, 'no_open':True}" />
+                        </group>
+                        <group>
+                            <field name="kelas_id" />
+                            <field name="kamar_id" />
+                        </group>
+                    </group>
+                    <group string="Data Virtual Account" invisible="not santri_id">
+                        <group>
+                            <field name="va_utama" />
+                        </group>
+                        <group>
+                            <field name="va_saku" />
+                        </group>
+                    </group>
+                    <group string="Konfirmasi Penghapusan" invisible="not santri_id">
+                        <field name="catatan" placeholder="Tuliskan alasan mengapa VA ini perlu dihapus..." />
+                    </group>
+                    <footer>
+                        <button name="action_submit" 
+                                string="Hapus Secara Permanen" 
+                                type="object" 
+                                class="btn-danger" 
+                                confirm="Apakah Anda yakin ingin menghapus VA santri ini secara permanen di Bank dan Odoo?"
+                                invisible="not santri_id" />
+                        <button string="Batal" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_wizard_delete_va" model="ir.actions.act_window">
+            <field name="name">Hapus VA Santri</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">wizard.delete.va</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="wizard_delete_va_form" />
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

@@ -11,24 +11,31 @@ patch(InheritTabel.prototype, {
     super.setup();
     this.isCameraVisible = false;
     this.originalTable = null;
-    this.notification = useService("notification"); // Gunakan notification service
+    this.notification = useService("notification");
+    
+    // Explicitly add partners to the reactive state
+    this.state.partners = null;
   },
 
   // Fungsi untuk menangani pencarian saat input berubah
   async _onSearchInputChange() {
-    if (!this.state || !this.state.query) {
-      this.partners = null;
-      this.render();
+    if (!this.state) {
       return;
     }
 
-    const query = this.state.query;
+    const query = this.state.query || "";
+    console.log("Search input change detected. Query:", query);
+    
     if (query && query.length >= 2) {
+      console.log("Triggering performSearch for query:", query);
       await this.performSearch(query);
+    } else if (query.length === 0) {
+      this.state.partners = null;
     }
   },
 
   async performSearch(query, noLimit = false) {
+    console.log(`Performing search: "${query}", noLimit: ${noLimit}`);
     try {
       const response = await rpc(
         "/siswa/search",
@@ -40,22 +47,34 @@ patch(InheritTabel.prototype, {
         }
       );
 
-      if (response && response.partners) {
-        this.partners = response.partners.map((partner) => {
-          if (partner.saldo_uang_saku !== undefined) {
-            partner.wallet_balance_formatted = this.formatCurrency(
-              partner.saldo_uang_saku
-            );
-          }
-          return partner;
-        });
+      console.log("Search response received. Partners found:", response?.partners?.length || 0);
 
-        this.render();
+      if (response && response.partners) {
+        // Map data safely and ensure ID is numeric
+        // Also ensure wallet_balance matches saldo_uang_saku for POS display
+        this.state.partners = response.partners.map((data) => {
+          const formattedData = { ...data };
+          if (formattedData.id) {
+              formattedData.id = Number(formattedData.id);
+          }
+          
+          // Use saldo_uang_saku as the primary balance source
+          const balance = formattedData.saldo_uang_saku || 0;
+          formattedData.wallet_balance = balance;
+          formattedData.wallet_balance_formatted = this.formatCurrency(balance);
+          
+          return formattedData;
+        });
+        
+        console.log("Partners state updated. UI should refresh automatically.");
 
         const searchMoreButton = document.querySelector(".search-more-button");
-        if (searchMoreButton && noLimit) {
-          searchMoreButton.style.display = "none";
+        if (searchMoreButton) {
+          searchMoreButton.style.display = noLimit ? "none" : "flex";
         }
+      } else {
+        console.warn("No partners found in response.");
+        this.state.partners = [];
       }
     } catch (error) {
       console.error("Error searching for students:", error);
@@ -63,6 +82,7 @@ patch(InheritTabel.prototype, {
   },
 
   async onEnter() {
+    console.log("Search more triggered for:", this.state.query);
     if (this.state && this.state.query) {
       await this.performSearch(this.state.query, true);
     }
@@ -101,14 +121,22 @@ patch(InheritTabel.prototype, {
           );
 
           if (response && response.partner_id) {
-            this.clickPartner(response.partner_id);
-            this.props.close();
+            // Find in local store or use raw data with numeric ID
+            let partner = this.pos.models["res.partner"].find(p => p.id === response.partner_id);
+            if (!partner) {
+              partner = { ...response, id: Number(response.partner_id) };
+              // Ensure balance alignment for scanned partner too
+              partner.wallet_balance = partner.saldo_uang_saku || partner.wallet_balance || 0;
+            }
+            
+            if (partner) {
+              this.clickPartner(partner);
+              this.props.close();
 
-            const successSound = new Audio(
-              "/pos_wallet_odoo/static/src/mp3/s1.mp3"
-            );
-            successSound.play();
-            return; // Exit if found
+              const successSound = new Audio("/pos_wallet_odoo/static/src/mp3/s1.mp3");
+              successSound.play();
+              return;
+            }
           }
         } catch (error) {
           console.error("Barcode search error:", error);
@@ -122,21 +150,13 @@ patch(InheritTabel.prototype, {
 
   async BarCodeSantri() {
     const tableElement = document.getElementById("barcode");
-
     if (!this.isCameraVisible) {
-      if (!tableElement) {
-        console.error("Tabel tidak ditemukan.");
-        return;
-      }
-
-      // Siapkan suara berhasil dan gagal
+      if (!tableElement) return;
+      
       const successSound = new Audio("/pos_wallet_odoo/static/src/mp3/s1.mp3");
       const failSound = new Audio("/pos_wallet_odoo/static/src/mp3/s2.mp3");
-
-      // Simpan tabel asli
       this.originalTable = tableElement.cloneNode(true);
 
-      // Buat kontainer video untuk scanner
       const videoContainer = document.createElement("div");
       videoContainer.id = "video-container";
       videoContainer.style.width = "100%";
@@ -149,7 +169,6 @@ patch(InheritTabel.prototype, {
       videoContainer.style.overflow = "hidden";
       videoContainer.style.position = "relative";
 
-      // Buat elemen untuk hasil barcode
       const resultElement = document.createElement("div");
       resultElement.id = "barcode-result";
       resultElement.innerHTML = `Hasil: <span id="barcode-text">Belum ada hasil</span>`;
@@ -159,133 +178,67 @@ patch(InheritTabel.prototype, {
       resultElement.style.color = "#28a745";
       resultElement.style.textAlign = "center";
 
-      // Ganti tabel dengan videoContainer dan resultElement
       tableElement.replaceWith(videoContainer);
       videoContainer.after(resultElement);
 
-      // Inisialisasi QuaggaJS
-      Quagga.init(
-        {
-          inputStream: {
-            name: "Live",
-            type: "LiveStream",
-            target: videoContainer,
-            constraints: {
-              facingMode: "environment",
-            },
-          },
-          decoder: {
-            readers: [
-              "code_128_reader",
-              "ean_reader",
-              "ean_8_reader",
-              "upc_reader",
-              "upc_e_reader",
-              "code_39_reader",
-            ],
-          },
-        },
+      Quagga.init({
+        inputStream: { name: "Live", type: "LiveStream", target: videoContainer, constraints: { facingMode: "environment" } },
+        decoder: { readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader"] }
+      },
         (err) => {
           if (err) {
-            console.error("QuaggaJS gagal diinisialisasi:", err);
-            this.notification.add("Kamera tidak dapat diakses", {
-              title: "Error",
-              type: "danger",
-            });
+            console.error("QuaggaJS gagal:", err);
+            this.notification.add("Kamera tidak dapat diakses", { title: "Error", type: "danger" });
             return;
           }
           Quagga.start();
         }
       );
 
-      // Menampilkan hasil barcode
       Quagga.onDetected(async (result) => {
         const code = result.codeResult.code;
         const barcodeTextElement = document.getElementById("barcode-text");
-        if (barcodeTextElement) {
-          barcodeTextElement.textContent = code;
-        }
+        if (barcodeTextElement) barcodeTextElement.textContent = code;
 
         try {
-          // Panggil API untuk mendapatkan data partner berdasarkan kode hasil scan
-          const response = await rpc(
-            "/siswa/get_data/bar",
-            { barcode: code },
-            {
-              headers: {
-                accept: "application/json",
-              },
-            }
-          );
-
+          const response = await rpc("/siswa/get_data/bar", { barcode: code }, { headers: { accept: "application/json" } });
           if (response && response.partner_id) {
-            // Panggil fungsi clickPartner jika partner ditemukan
-            this.clickPartner(response.partner_id);
-            successSound.play();
-
-            // Tutup dialog setelah partner dipilih
-            if (typeof this.props.close === "function") {
-              this.props.close();
+            let partner = this.pos.models["res.partner"].find(p => p.id === response.partner_id);
+            if (!partner) {
+                partner = { ...response, id: Number(response.partner_id) };
+                partner.wallet_balance = partner.saldo_uang_saku || 0;
+            }
+            
+            if (partner) {
+                this.clickPartner(partner);
+                successSound.play();
+                if (typeof this.props.close === "function") this.props.close();
             }
           } else {
-            console.warn("Partner tidak ditemukan atau data tidak lengkap.");
             failSound.play();
-
-            // Tampilkan notifikasi error
-            this.notification.add("Barcode santri tidak ditemukan", {
-              title: "Pencarian Gagal",
-              type: "danger",
-            });
+            this.notification.add("Barcode santri tidak ditemukan", { title: "Pencarian Gagal", type: "danger" });
           }
         } catch (error) {
-          console.error("Error saat mengambil data partner:", error);
+          console.error("Error barcode scan:", error);
           failSound.play();
-
-          // Tampilkan notifikasi error
-          this.notification.add("Terjadi kesalahan saat mencari data", {
-            title: "Error",
-            type: "danger",
-          });
         }
-
-        // Tutup kamera dan kembalikan tampilan
         this.closeCamera(videoContainer, resultElement);
       });
-
-      // Tandai kamera sebagai aktif
       this.isCameraVisible = true;
     } else {
-      // Jika kamera sudah aktif, tutup kamera dan kembalikan tampilan
-      const videoContainer = document.getElementById("video-container");
-      const resultElement = document.getElementById("barcode-result");
-      if (videoContainer && resultElement) {
-        this.closeCamera(videoContainer, resultElement);
-      }
+      this.closeCamera(document.getElementById("video-container"), document.getElementById("barcode-result"));
     }
   },
 
   closeCamera(videoContainer, resultElement) {
-    // Pastikan Quagga ada sebelum mencoba menghentikannya
-    if (typeof Quagga !== "undefined" && Quagga) {
-      // Hentikan QuaggaJS jika sudah diinisialisasi
-      Quagga.stop();
-    }
-
-    // Kembalikan tabel asli
-    if (videoContainer && this.originalTable) {
-      videoContainer.replaceWith(this.originalTable);
-    }
-    if (resultElement) {
-      resultElement.remove();
-    }
-
-    // Tandai kamera sebagai tidak aktif
+    if (typeof Quagga !== "undefined" && Quagga) Quagga.stop();
+    if (videoContainer && this.originalTable) videoContainer.replaceWith(this.originalTable);
+    if (resultElement) resultElement.remove();
     this.isCameraVisible = false;
   },
 
-  // Perbarui method getPartners untuk mengakomodasi pencarian real-time
   getPartners() {
-    return this.partners || super.getPartners();
+    return this.state.partners || super.getPartners();
   },
 });
 
@@ -293,64 +246,26 @@ patch(InheritTabel.prototype, {
 patch(InheritData.prototype, {
   setup() {
     super.setup();
-    // Pastikan barcode ada sebelum memanggil getWalletBalance
     if (this.props && this.props.partner && this.props.partner.barcode) {
       this.getWalletBalance(this.props.partner.barcode);
     }
   },
 
   async getWalletBalance(barcode) {
-    if (!barcode) {
-      return; // Keluar jika barcode tidak ada
-    }
-
+    if (!barcode) return;
     try {
-      const response = await rpc(
-        "/siswa/get_data/bar",
-        { barcode: barcode },
-        {
-          headers: {
-            accept: "application/json",
-          },
-        }
-      );
+      const response = await rpc("/siswa/get_data/bar", { barcode: barcode }, { headers: { accept: "application/json" } });
+      if (!this.props || !this.props.partner) return;
 
-      // Pastikan this.props.partner tersedia
-      if (!this.props || !this.props.partner) {
-        return;
-      }
-
-      // Set wallet_balance dan lainnya ke props.partner
       if (response && !response.error) {
-        // Ambil wallet_balance dan nis dari response
-        const walletBalance = response.wallet_balance || 0;
+        // Use saldo_uang_saku as truth for wallet_balance
+        const walletBalance = response.saldo_uang_saku || response.wallet_balance || 0;
         this.props.partner.wallet_balance = walletBalance;
         this.props.partner.nis = response.nis || "";
-
-        // Format wallet_balance ke format rupiah tanpa desimal
-        const formattedBalance = new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-          minimumFractionDigits: 0, // Tidak ada desimal
-          maximumFractionDigits: 0, // Tidak ada desimal
-        }).format(walletBalance);
-
-        // Simpan hasil format ke wallet_balance yang ditampilkan
-        this.props.partner.wallet_balance_formatted = formattedBalance;
-
-        // Trigger render update
-        this.render();
-      } else {
-        console.error("Error fetching data:", response?.error);
-        this.props.partner.wallet_balance = 0; // Atur ke 0 jika ada error
-        this.props.partner.wallet_balance_formatted = "Rp 0"; // Format default
+        this.props.partner.wallet_balance_formatted = this.env.utils.formatCurrency(walletBalance);
       }
     } catch (error) {
-      console.error("Error fetching wallet balance:", error);
-      if (this.props && this.props.partner) {
-        this.props.partner.wallet_balance = 0; // Atur ke 0 jika ada error
-        this.props.partner.wallet_balance_formatted = "Rp 0"; // Format default
-      }
+      console.error("Error balance:", error);
     }
   },
 });

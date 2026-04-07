@@ -125,45 +125,51 @@ class SiswaInherit(models.Model):
         self.ensure_one()
         company = self.company_id or self.env.company
         now = fields.Datetime.now()
-        
+
         # User sets hour in WIB (UTC+7), convert to UTC
         reset_hour_utc = (company.limit_reset_hour - 7) % 24
-        
+
         if limit_type == 'hari':
             # Reset tomorrow at the configured hour
-            next_reset = now.replace(hour=reset_hour_utc, minute=0, second=0, microsecond=0)
+            next_reset = now.replace(
+                hour=reset_hour_utc, minute=0, second=0, microsecond=0)
             if next_reset <= now:
                 next_reset += timedelta(days=1)
             return next_reset
-            
+
         elif limit_type == 'minggu':
             # Reset on the specified day of week at the configured hour
-            target_dow = int(company.limit_weekly_reset_day) # 0=Mon, ..., 6=Sun
+            # 0=Mon, ..., 6=Sun
+            target_dow = int(company.limit_weekly_reset_day)
             days_ahead = target_dow - now.weekday()
-            if days_ahead <= 0: # Target day already happened this week or is today
+            if days_ahead <= 0:  # Target day already happened this week or is today
                 days_ahead += 7
-                
+
             next_reset = (now + timedelta(days=days_ahead)).replace(
                 hour=reset_hour_utc, minute=0, second=0, microsecond=0)
-            
+
             # If today IS the target day, check if it's already past the reset hour
             if now.weekday() == target_dow:
-                today_reset = now.replace(hour=reset_hour_utc, minute=0, second=0, microsecond=0)
+                today_reset = now.replace(
+                    hour=reset_hour_utc, minute=0, second=0, microsecond=0)
                 if today_reset > now:
                     return today_reset
-            
+
             return next_reset
-            
+
         elif limit_type == 'bulan':
             # Reset on the specified day of month at the configured hour
             target_day = company.limit_monthly_reset_day or 1
             # Handle months with fewer days
             try:
-                next_reset = now.replace(day=target_day, hour=reset_hour_utc, minute=0, second=0, microsecond=0)
+                next_reset = now.replace(
+                    day=target_day, hour=reset_hour_utc, minute=0, second=0, microsecond=0)
             except ValueError:
                 # If target day is 31 and it's Feb, go to last day of Feb
-                last_day = (now.replace(day=1) + relativedelta(months=1, days=-1)).day
-                next_reset = now.replace(day=last_day, hour=reset_hour_utc, minute=0, second=0, microsecond=0)
+                last_day = (now.replace(day=1) +
+                            relativedelta(months=1, days=-1)).day
+                next_reset = now.replace(
+                    day=last_day, hour=reset_hour_utc, minute=0, second=0, microsecond=0)
 
             if next_reset <= now:
                 next_reset += relativedelta(months=1)
@@ -171,10 +177,11 @@ class SiswaInherit(models.Model):
                 try:
                     next_reset = next_reset.replace(day=target_day)
                 except ValueError:
-                    last_day_next_month = (next_reset.replace(day=1) + relativedelta(months=1, days=-1)).day
+                    last_day_next_month = (next_reset.replace(
+                        day=1) + relativedelta(months=1, days=-1)).day
                     next_reset = next_reset.replace(day=last_day_next_month)
             return next_reset
-            
+
         return now + timedelta(days=1)
 
     def _reset_expired_limits(self):
@@ -232,6 +239,15 @@ class SiswaInherit(models.Model):
     def _check_limit(self, amount):
         """Centralized limit check logic"""
         self.ensure_one()
+
+        # 1. Cek saldo aktual terlebih dahulu (Mencegah Saldo Negatif)
+        balance = self.partner_id.saldo_uang_saku
+        if float_compare(amount, balance, precision_digits=0) > 0:
+            raise UserError(
+                f"Saldo tidak mencukupi untuk melakukan transaksi sebesar Rp {amount:,.0f}. "
+                f"Saldo saat ini: Rp {balance:,.0f}."
+            )
+
         if not self.is_limit_active:
             return True
 

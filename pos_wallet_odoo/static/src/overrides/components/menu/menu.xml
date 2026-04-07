@@ -5,12 +5,12 @@
         <!-- Contoh: Menambahkan elemen baru di bagian atas Navbar -->
             <xpath expr="//div[@class='p-2 pos-burger-menu-items']" position="replace">
                 <div class="p-2 pos-burger-menu-items">
-                    <DropdownItem onSelected="() => this.pos.onTicketButtonClick()"> Orders <span
+                    <DropdownItem onSelected="() => this.pos.showScreen('TicketScreen')"> Orders <span
                             t-if="orderCount gt 0"
                             class="badge text-bg-info rounded-pill py-1 ms-2 float-end"
                             t-esc="orderCount" />
                     </DropdownItem>
-                    <DropdownItem t-if="showCashMoveButton" onSelected="() => this.pos.cashMove()">
+                    <DropdownItem t-if="showCashMoveButton" onSelected="() => this.pos.showScreen('CashMoveScreen')">
                         Cash In/Out
                     </DropdownItem>
                     <DropdownItem t-if="!hasGroupPOSUser"
@@ -18,19 +18,19 @@
                         Kelola Stok
                     </DropdownItem>
                     <DropdownItem 
-                        onSelected="() => this.pos.editProduct()">
+                        onSelected="() => this.pos.showScreen('ProductScreen', { edit: true })">
                         Create Product
                     </DropdownItem>
                     <DropdownItem t-if="hardwareProxy.printer" onSelected="() => this.showSaleDetails()">
                         Print Report
                     </DropdownItem>
                     <div class="d-none" id="dropdown-item">
-                        <DropdownItem onSelected="() => pos.closePos()">
+                        <DropdownItem onSelected="() => this.pos.closePos()">
                             Backend
                         </DropdownItem>
                     </div>
-                    <DropdownItem onSelected="() => pos.closePos()" t-if="hasGroupPOSUser"> Back </DropdownItem>
-                    <DropdownItem onSelected="() => this.pos.closeSession()">
+                    <DropdownItem onSelected="() => this.pos.closePos()" t-if="hasGroupPOSUser"> Back </DropdownItem>
+                    <DropdownItem onSelected="() => this.pos.closePos()">
                         Close Register
                     </DropdownItem>
                 </div>

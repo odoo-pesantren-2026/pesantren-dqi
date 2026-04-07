@@ -243,3 +243,6 @@ odoo.conf
 
 # Git Patches
 patches/
+
+# BPI Mockup JSON Database
+bpi_mockup/db.json

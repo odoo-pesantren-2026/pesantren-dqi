@@ -39,7 +39,7 @@ class WalletRecharge(models.TransientModel):
         return max(0, max_wallet - dompet)
 
     recharge_amount = fields.Float(
-        string='Nominal Saldo', required=True, readonly=False, compute="_compute_recharge_amount", store=True
+        string='Nominal Saldo', required=True, readonly=False
     )
     siswa_id = fields.Many2one(
         comodel_name='res.partner', string='Siswa', readonly=True, default=lambda self: self._get_partner_id(), ondelete='cascade'
@@ -133,17 +133,16 @@ class WalletRecharge(models.TransientModel):
                 f"Total pengisian untuk {self.recharge_type} melebihi batas Rp {batas_saldo}. Sisa yang bisa diisi: Rp {batas_saldo - (total_pengisian - self.recharge_amount)}."
             )
 
-    @api.depends('recharge_type')
-    def _compute_recharge_amount(self):
-        for record in self:
-            if record.recharge_type == 'manual_based':
-                record.recharge_amount = 0  # Biarkan pengguna memasukkan secara manual
-            elif record.recharge_type == 'saku_based':
-                record.recharge_amount = record.saldo_uang_saku
-            else:
-                # Langsung gunakan limit tanpa mempertimbangkan saldo uang saku
-                record.recharge_amount = self.LIMITS.get(
-                    record.recharge_type, 0)
+    @api.onchange('recharge_type', 'saldo_uang_saku')
+    def _onchange_recharge_type(self):
+        if self.recharge_type == 'manual_based':
+            # Suggest 0 as default for manual mode if not set
+            if not self.recharge_amount:
+                self.recharge_amount = 0
+        elif self.recharge_type == 'saku_based':
+            self.recharge_amount = self.saldo_uang_saku
+        elif self.recharge_type in self.LIMITS:
+            self.recharge_amount = self.LIMITS.get(self.recharge_type, 0)
 
     @api.model
     def default_get(self, fields):

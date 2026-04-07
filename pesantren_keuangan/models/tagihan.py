@@ -19,7 +19,7 @@ class Tagihan(models.Model):
         ('saldo', 'Saldo / Uang Saku Santri'),
         ('smart_billing', 'Smart Billing (VA BSI)'),
         ('manual', 'Manual / Tunai')
-    ], string='Cara Pembayaran', required=True, default='saldo')
+    ], string='Cara Pembayaran', required=True, default='manual')
 
     @api.onchange('cara_pembayaran')
     def _onchange_cara_pembayaran(self):

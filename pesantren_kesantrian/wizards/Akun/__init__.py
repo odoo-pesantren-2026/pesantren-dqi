@@ -4,3 +4,4 @@ from . import blokir
 from . import open_block
 from . import open_account
 from . import kelola_pin
+from . import delete_va

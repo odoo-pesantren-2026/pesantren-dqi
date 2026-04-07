@@ -2,7 +2,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
-
 class WizardKelolaPIN(models.TransientModel):
     _name = "wizard.kelola.pin"
     _description = "Wizard Kelola PIN Dompet Santri"
@@ -11,7 +10,8 @@ class WizardKelolaPIN(models.TransientModel):
         """Domain untuk santri yang akunnya aktif"""
         return [('status_akun', '=', 'aktif')]
 
-    kartu_santri = fields.Char(string="No. Kartu Santri")
+    # Kartu santri tetap ada tapi bersifat opsional
+    kartu_santri = fields.Char(string="No. Kartu Santri", required=False)
     santri_id = fields.Many2one(
         'cdn.siswa', 
         string="Santri", 
@@ -53,12 +53,10 @@ class WizardKelolaPIN(models.TransientModel):
 
     @api.onchange('santri_id')
     def _onchange_santri_id(self):
-        """Saat santri dipilih, isi no kartu otomatis"""
+        """Saat santri dipilih, isi no kartu otomatis jika kosong"""
         for record in self:
-            if record.santri_id:
+            if record.santri_id and not record.kartu_santri:
                 record.kartu_santri = record.santri_id.barcode_santri
-            else:
-                record.kartu_santri = False
 
     @api.onchange('kartu_santri')
     def _onchange_kartu_santri(self):
@@ -77,7 +75,7 @@ class WizardKelolaPIN(models.TransientModel):
                 ], limit=1)
 
                 if santri_nonaktif:
-                    self.kartu_santri = False
+                    # Tampilkan warning tapi jangan hapus input kartu
                     return {
                         'warning': {
                             'title': 'Akun Tidak Aktif',
@@ -85,11 +83,10 @@ class WizardKelolaPIN(models.TransientModel):
                         }
                     }
                 else:
-                    self.kartu_santri = False
                     return {
                         'warning': {
                             'title': 'Data Tidak Ditemukan',
-                            'message': f"Tidak ditemukan santri dengan nomor kartu tersebut."
+                            'message': f"Tidak ditemukan santri dengan nomor kartu '{self.kartu_santri}'."
                         }
                     }
             else:
@@ -133,7 +130,6 @@ class WizardKelolaPIN(models.TransientModel):
             raise UserError("PIN baru dan konfirmasi PIN tidak sama.")
         
         # Update PIN
-        old_pin = self.santri_id.partner_id.wallet_pin or '(kosong)'
         self.santri_id.partner_id.wallet_pin = self.new_pin
         
         # Log perubahan di chatter santri
@@ -159,7 +155,6 @@ class WizardKelolaPIN(models.TransientModel):
             }
         )
 
-        # Buka wizard lagi untuk kelola santri lain
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'wizard.kelola.pin',

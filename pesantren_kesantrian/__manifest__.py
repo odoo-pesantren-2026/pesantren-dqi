@@ -82,6 +82,7 @@
         'wizards/wizard_rekap_absensi.xml',
         'wizards/wizard_rekap_penilaian.xml',
         'wizards/Akun/kelola_pin.xml',
+        'wizards/Akun/delete_va.xml',
         'wizards/menu.xml',
     ],
     'assets': {
