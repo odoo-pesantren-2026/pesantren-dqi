@@ -86,6 +86,21 @@ class PenonaktifanSaldo(models.TransientModel):
             'catatan_akun': self.catatan
         })
 
+        # Clear VA fields on partner
+        if self.santri_id.partner_id:
+            self.santri_id.partner_id.sudo().write({
+                'virtual_account': False,
+                'va_saku': False
+            })
+
+        # Log to chatter
+        self.santri_id.message_post(
+            body=f"<b>Virtual Account Dinonaktifkan</b><br/>"
+                 f"Alasan: {self.alasan_penonaktifan}<br/>"
+                 f"Catatan: {self.catatan or '-'}",
+            message_type='notification'
+        )
+
         # 2. Batalkan VA Top-up jika ada (Bekerja Optimal)
         self._cancel_active_va(self.santri_id.id)
 

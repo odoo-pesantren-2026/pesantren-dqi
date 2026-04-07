@@ -724,13 +724,13 @@ class SmartBillingTransaction(models.Model):
         """Cancel the transaction"""
         self.ensure_one()
 
-        if self.state != 'pending':
+        if self.state not in ['pending', 'active']:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': 'Cannot Cancel',
-                    'message': 'Only pending transactions can be cancelled',
+                    'message': 'Only pending or active transactions can be cancelled',
                     'type': 'warning',
                     'sticky': False,
                 }
