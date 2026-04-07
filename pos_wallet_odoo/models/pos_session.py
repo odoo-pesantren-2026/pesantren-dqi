@@ -51,7 +51,9 @@ class PosSession(models.Model):
     def _loader_params_res_partner(self):
         """Load res.partner parameters"""
         result = super()._loader_params_res_partner()
-        result['search_params']['fields'].extend(['wallet_balance', 'avatar_128'])
+        result['search_params']['fields'].extend([
+            'wallet_balance', 'avatar_128', 'virtual_account', 'va_saku', 'saldo_uang_saku'
+        ])
         return result
 
     def _loader_params_pos_payment_method(self):

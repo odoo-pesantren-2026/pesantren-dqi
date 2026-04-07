@@ -47,6 +47,7 @@
         'data/ir_sequence_data.xml',
         'data/cdn_tingkat_data.xml',
         'data/jenis_pegawai_data.xml',
+        'data/l10n_id_fix.xml',
 
         # report
         'report/cetak_sertifikat_santri.xml',

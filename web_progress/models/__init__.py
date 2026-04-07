@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from . import base
 from . import base_import
 from . import ir_actions_report

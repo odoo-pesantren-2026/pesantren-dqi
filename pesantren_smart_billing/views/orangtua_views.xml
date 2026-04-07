@@ -1,19 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
         <!-- Inherit Orangtua Form to add Smart Billing smart buttons only -->
         <record id="view_cdn_orangtua_form_smart_billing" model="ir.ui.view">
             <field name="name">cdn.orangtua.form.smart.billing</field>
             <field name="model">cdn.orangtua</field>
-            <field name="inherit_id" ref="pesantren_base.view_cdn_orangtua_form"/>
+            <field name="inherit_id" ref="pesantren_base.view_cdn_orangtua_form" />
             <field name="arch" type="xml">
                 <!-- Add Smart Billing smart buttons (hanya stat button, tanpa action buttons) -->
                 <xpath expr="//div[@name='button_box']" position="inside">
-                    <button name="action_view_tagihan_anak" type="object" class="oe_stat_button" icon="fa-file-text-o">
-                        <field name="tagihan_belum_lunas_count" widget="statinfo" string="Tagihan"/>
+                    <button name="action_view_tagihan_anak" type="object" class="oe_stat_button"
+                        icon="fa-file-text-o">
+                        <field name="tagihan_belum_lunas_count" widget="statinfo" string="Tagihan" />
                     </button>
-                    <button name="action_view_transaksi_smart_billing" type="object" class="oe_stat_button" icon="fa-credit-card">
-                        <field name="smart_billing_transaction_count" widget="statinfo" string="Transaksi"/>
+                    <button name="action_view_transaksi_smart_billing" type="object"
+                        class="oe_stat_button" icon="fa-credit-card">
+                        <field name="smart_billing_transaction_count" widget="statinfo"
+                            string="Transaksi" />
                     </button>
                 </xpath>
             </field>

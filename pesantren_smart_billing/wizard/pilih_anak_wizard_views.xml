@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
         <!-- Pilih Anak Wizard Form View -->
@@ -9,32 +9,33 @@
                 <form string="Pilih Anak untuk Top-up">
                     <sheet>
                         <group>
-                            <field name="orangtua_id" invisible="1"/>
-                            <field name="available_siswa_ids" invisible="1"/>
-                            <field name="siswa_id" options="{'no_create': True}" widget="selection"/>
+                            <field name="orangtua_id" invisible="1" />
+                            <field name="available_siswa_ids" invisible="1" />
+                            <field name="siswa_id" options="{'no_create': True}" widget="selection" />
                         </group>
-                        
+
                         <group invisible="not siswa_id">
                             <group string="Informasi Anak">
-                                <field name="siswa_va" readonly="1"/>
-                                <field name="siswa_saldo" readonly="1"/>
-                                <field name="has_va" invisible="1"/>
+                                <field name="siswa_va" readonly="1" />
+                                <field name="siswa_saldo" readonly="1" />
+                                <field name="has_va" invisible="1" />
                             </group>
                         </group>
-                        
-                        <div class="alert alert-warning" role="alert" invisible="has_va or not siswa_id">
-                            <i class="fa fa-exclamation-triangle"/> Anak ini belum memiliki Virtual Account.
-                            Silakan hubungi admin pesantren.
-                        </div>
+
+                        <div class="alert alert-warning" role="alert"
+                            invisible="has_va or not siswa_id">
+                            <i class="fa fa-exclamation-triangle" /> Anak ini belum memiliki Virtual
+                            Account. Silakan hubungi admin pesantren. </div>
                     </sheet>
                     <footer>
-                        <button name="action_continue" type="object" string="Lanjutkan" class="btn-primary" invisible="not has_va"/>
-                        <button string="Batal" class="btn-secondary" special="cancel"/>
+                        <button name="action_continue" type="object" string="Lanjutkan"
+                            class="btn-primary" invisible="not has_va" />
+                        <button string="Batal" class="btn-secondary" special="cancel" />
                     </footer>
                 </form>
             </field>
         </record>
-        
+
         <!-- Action for Pilih Anak Wizard -->
         <record id="action_pilih_anak_wizard" model="ir.actions.act_window">
             <field name="name">Pilih Anak</field>

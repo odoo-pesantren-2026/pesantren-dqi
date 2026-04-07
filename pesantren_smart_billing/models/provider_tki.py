@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 import logging
@@ -9,15 +10,15 @@ _logger = logging.getLogger(__name__)
 class TKIProvider(models.AbstractModel):
     """
     TKI (Teknologi Kartu Indonesia) Smart Billing Provider.
-    
+
     TKI menyediakan Platform Sekolah Pintar yang mencakup:
     - Kartu multifungsi digital
     - Digital billing
     - Sistem absensi
-    
+
     This is a placeholder implementation. When you get the TKI API documentation
     and credentials, implement the actual API calls here.
-    
+
     Website: https://teknologikartu.com
     """
     _name = 'smart.billing.provider.tki'
@@ -26,10 +27,10 @@ class TKIProvider(models.AbstractModel):
 
     def get_provider_code(self):
         return 'tki'
-    
+
     def get_provider_name(self):
         return 'TKI (Teknologi Kartu Indonesia)'
-    
+
     def get_config(self):
         """Get TKI configuration from settings"""
         ICP = self.env['ir.config_parameter'].sudo()
@@ -42,7 +43,7 @@ class TKIProvider(models.AbstractModel):
             'va_bank': ICP.get_param('smart_billing.va_bank', 'bni'),
             'expiry_duration': int(ICP.get_param('smart_billing.expiry_hours', '24')),
         }
-    
+
     def _validate_config(self):
         """Validate that required configuration is set"""
         config = self.get_config()
@@ -52,23 +53,24 @@ class TKIProvider(models.AbstractModel):
                 "Silakan set di Settings > Keuangan > Smart Billing"
             )
         return config
-    
+
     def _get_api_base_url(self):
         """Get TKI API base URL based on environment"""
         config = self.get_config()
         if config['is_production']:
-            return 'https://api.teknologikartu.com/v1'  # Example - adjust based on actual API
+            # Example - adjust based on actual API
+            return 'https://api.teknologikartu.com/v1'
         else:
             return 'https://sandbox.teknologikartu.com/v1'  # Example sandbox URL
-    
+
     def create_va_transaction(self, order_id, amount, customer_details, bank=None):
         """
         Create VA transaction via TKI API.
-        
+
         TODO: Implement actual TKI API call when documentation is available.
         """
         self._validate_config()
-        
+
         raise UserError(
             "TKI API belum diimplementasikan.\n\n"
             "Untuk menggunakan TKI, Anda perlu:\n"
@@ -77,62 +79,63 @@ class TKIProvider(models.AbstractModel):
             "3. Implementasikan API calls di file ini\n\n"
             "Sementara ini, gunakan 'Dummy Provider' untuk testing."
         )
-    
+
     def create_permanent_va(self, partner, bank=None):
         """
         Create permanent VA via TKI API.
-        
+
         TODO: Implement actual TKI API call.
-        
+
         TKI might use different approach with their card system.
         """
         self._validate_config()
-        
+
         raise UserError(
             "TKI Permanent VA belum diimplementasikan.\n\n"
             "TKI mungkin menggunakan sistem kartu untuk pembayaran.\n"
             "Hubungi TKI untuk informasi lebih lanjut tentang integrasi VA."
         )
-    
+
     def create_payment_link(self, order_id, amount, item_details, customer_details):
         """
         Create payment link via TKI API.
-        
+
         TODO: Implement if TKI supports payment links.
         """
         self._validate_config()
-        
+
         raise UserError(
             "TKI Payment Link belum diimplementasikan.\n\n"
             "Fitur ini tergantung pada dukungan dari TKI API."
         )
-    
+
     def check_transaction_status(self, order_id):
         """
         Check transaction status from TKI API.
-        
+
         TODO: Implement actual TKI API call.
         """
         self._validate_config()
-        
+
         raise UserError(
             "TKI Status Check belum diimplementasikan.\n\n"
             "Silakan cek status transaksi langsung di dashboard TKI."
         )
-    
+
     def verify_notification_signature(self, notification_data):
         """
         Verify TKI webhook signature.
-        
+
         TODO: Implement TKI signature verification based on their spec.
         """
-        _logger.warning("[TKI] Signature verification not implemented - accepting all notifications")
+        _logger.warning(
+            "[TKI] Signature verification not implemented - accepting all notifications")
         return True
-    
+
     def parse_notification(self, notification_data):
         """
         Parse TKI webhook notification.
-        
+
         TODO: Adjust parsing based on actual TKI notification format.
         """
         return {
@@ -143,15 +146,15 @@ class TKIProvider(models.AbstractModel):
             'settlement_time': notification_data.get('paid_at'),
             'transaction_id': notification_data.get('transaction_id', ''),
         }
-    
+
     def cancel_transaction(self, order_id):
         """
         Cancel TKI transaction.
-        
+
         TODO: Implement if TKI API supports cancellation.
         """
         self._validate_config()
-        
+
         raise UserError(
             "TKI Cancel Transaction belum diimplementasikan.\n\n"
             "Silakan batalkan transaksi langsung di dashboard TKI."

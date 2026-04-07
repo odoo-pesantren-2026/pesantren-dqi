@@ -95,28 +95,28 @@
                 </xpath>
             </field>
         </record>
-        
+
         <!-- Server Action: Kirim Billing BSI Massal (Bulk) -->
         <record id="action_send_bsi_billing_bulk" model="ir.actions.server">
             <field name="name">Kirim Billing BSI Massal</field>
-            <field name="model_id" ref="account.model_account_move"/>
-            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="model_id" ref="account.model_account_move" />
+            <field name="binding_model_id" ref="account.model_account_move" />
             <field name="binding_view_types">list</field>
             <field name="state">code</field>
             <field name="code">
-records.action_send_bsi_billing_bulk()
+                records.action_send_bsi_billing_bulk()
             </field>
         </record>
 
         <!-- Server Action: Reset ke Draft Massal -->
         <record id="action_reset_draft_bulk" model="ir.actions.server">
             <field name="name">Reset ke Draft Massal</field>
-            <field name="model_id" ref="account.model_account_move"/>
-            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="model_id" ref="account.model_account_move" />
+            <field name="binding_model_id" ref="account.model_account_move" />
             <field name="binding_view_types">list</field>
             <field name="state">code</field>
             <field name="code">
-records.button_draft()
+                records.button_draft()
             </field>
         </record>
     </data>

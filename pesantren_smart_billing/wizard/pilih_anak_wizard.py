@@ -27,7 +27,7 @@ class PilihAnakWizard(models.TransientModel):
         string='Available Siswa',
         compute='_compute_available_siswa'
     )
-    
+
     # Selected siswa info
     siswa_va = fields.Char(
         string='VA Saku',
@@ -41,7 +41,7 @@ class PilihAnakWizard(models.TransientModel):
         string='Has VA',
         compute='_compute_siswa_info'
     )
-    
+
     @api.depends('orangtua_id')
     def _compute_available_siswa(self):
         for record in self:
@@ -53,7 +53,7 @@ class PilihAnakWizard(models.TransientModel):
                 record.available_siswa_ids = siswa_with_va
             else:
                 record.available_siswa_ids = False
-    
+
     @api.depends('siswa_id')
     def _compute_siswa_info(self):
         for record in self:
@@ -61,27 +61,27 @@ class PilihAnakWizard(models.TransientModel):
                 partner = record.siswa_id.partner_id
                 record.siswa_va = partner.va_saku or '-'
                 record.has_va = bool(partner.va_saku)
-                
+
                 saldo = record.siswa_id.saldo_uang_saku or 0
                 record.siswa_saldo = f"Rp{saldo:,.0f}".replace(',', '.')
             else:
                 record.siswa_va = '-'
                 record.siswa_saldo = 'Rp0'
                 record.has_va = False
-    
+
     def action_continue(self):
         """Continue to top-up wizard with selected child"""
         self.ensure_one()
-        
+
         if not self.siswa_id:
             raise UserError("Silakan pilih anak terlebih dahulu.")
-        
+
         if not self.has_va:
             raise UserError(
                 f"Anak {self.siswa_id.name} belum memiliki Virtual Account.\n"
                 "Silakan hubungi admin pesantren."
             )
-        
+
         return {
             'name': f'Top-up Saldo {self.siswa_id.name}',
             'type': 'ir.actions.act_window',

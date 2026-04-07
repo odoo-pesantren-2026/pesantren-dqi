@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
         <!-- Top-up Saldo Wizard Form View -->
@@ -10,31 +10,33 @@
                     <sheet>
                         <group>
                             <group string="Informasi Santri">
-                                <field name="partner_id" invisible="1"/>
-                                <field name="siswa_id" readonly="1"/>
-                                <field name="saldo_display" string="Saldo Saat Ini" readonly="1"/>
+                                <field name="partner_id" invisible="1" />
+                                <field name="siswa_id" readonly="1" />
+                                <field name="saldo_display" string="Saldo Saat Ini" readonly="1" />
                             </group>
                             <group string="Virtual Account">
-                                <field name="va_bank" readonly="1"/>
-                                <field name="va_number" readonly="1" widget="CopyClipboardChar"/>
-                                <field name="va_expiry" readonly="1"/>
+                                <field name="va_bank" readonly="1" />
+                                <field name="va_number" readonly="1" widget="CopyClipboardChar" />
+                                <field name="va_expiry" readonly="1" />
                             </group>
                         </group>
-                        
-                        <separator string="Cara Top-up"/>
+
+                        <separator string="Cara Top-up" />
                         <group>
-                            <field name="instruksi" readonly="1" nolabel="1" class="text-muted"/>
+                            <field name="instruksi" readonly="1" nolabel="1" class="text-muted" />
                         </group>
                     </sheet>
                     <footer>
-                        <button name="action_copy_va" type="object" string="📋 Salin Nomor VA" class="btn-primary"/>
-                        <button name="action_view_history" type="object" string="📜 Riwayat Top-up" class="btn-secondary"/>
-                        <button string="Tutup" class="btn-secondary" special="cancel"/>
+                        <button name="action_copy_va" type="object" string="📋 Salin Nomor VA"
+                            class="btn-primary" />
+                        <button name="action_view_history" type="object" string="📜 Riwayat Top-up"
+                            class="btn-secondary" />
+                        <button string="Tutup" class="btn-secondary" special="cancel" />
                     </footer>
                 </form>
             </field>
         </record>
-        
+
         <!-- Action for Top-up Wizard -->
         <record id="action_topup_saldo_wizard" model="ir.actions.act_window">
             <field name="name">Top-up Saldo</field>

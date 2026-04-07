@@ -13,95 +13,95 @@
                             Test endpoint API SmartBilling (Mockup atau Production)
                         </p>
                     </div>
-                    
+
                     <group string="Konfigurasi">
                         <group>
-                            <field name="api_mode" widget="radio"/>
+                            <field name="api_mode" widget="radio" />
                         </group>
                         <group>
-                            <field name="mockup_url" 
-                                   invisible="api_mode != 'mockup'"/>
+                            <field name="mockup_url"
+                                invisible="api_mode != 'mockup'" />
                         </group>
                     </group>
-                    
+
                     <group string="Parameter Test">
                         <group>
-                            <field name="test_customer_no"/>
-                            <field name="test_amount"/>
+                            <field name="test_customer_no" />
+                            <field name="test_amount" />
                         </group>
                         <group>
-                            <field name="access_token" readonly="1"/>
+                            <field name="access_token" readonly="1" />
                         </group>
                     </group>
-                    
+
                     <notebook>
                         <page string="Auth Test" name="auth">
                             <group>
-                                <field name="auth_status" widget="badge" 
-                                       decoration-success="auth_status == 'success'"
-                                       decoration-danger="auth_status == 'failed'"
-                                       decoration-info="auth_status == 'pending'"/>
+                                <field name="auth_status" widget="badge"
+                                    decoration-success="auth_status == 'success'"
+                                    decoration-danger="auth_status == 'failed'"
+                                    decoration-info="auth_status == 'pending'" />
                             </group>
                             <group>
-                                <field name="auth_result" widget="text" 
-                                       placeholder="Auth result will appear here..."
-                                       nolabel="1"/>
+                                <field name="auth_result" widget="text"
+                                    placeholder="Auth result will appear here..."
+                                    nolabel="1" />
                             </group>
                             <footer>
-                                <button name="action_test_auth" string="Test Auth" 
-                                        type="object" class="btn-primary"/>
+                                <button name="action_test_auth" string="Test Auth"
+                                    type="object" class="btn-primary" />
                             </footer>
                         </page>
-                        
+
                         <page string="Inquiry Test" name="inquiry">
                             <group>
                                 <field name="inquiry_status" widget="badge"
-                                       decoration-success="inquiry_status == 'success'"
-                                       decoration-danger="inquiry_status == 'failed'"
-                                       decoration-info="inquiry_status == 'pending'"/>
+                                    decoration-success="inquiry_status == 'success'"
+                                    decoration-danger="inquiry_status == 'failed'"
+                                    decoration-info="inquiry_status == 'pending'" />
                             </group>
                             <group>
                                 <field name="inquiry_result" widget="text"
-                                       placeholder="Inquiry result will appear here..."
-                                       nolabel="1"/>
+                                    placeholder="Inquiry result will appear here..."
+                                    nolabel="1" />
                             </group>
                             <footer>
-                                <button name="action_test_inquiry" string="Test Inquiry" 
-                                        type="object" class="btn-primary"/>
+                                <button name="action_test_inquiry" string="Test Inquiry"
+                                    type="object" class="btn-primary" />
                             </footer>
                         </page>
-                        
+
                         <page string="Payment Test" name="payment">
                             <group>
                                 <field name="payment_status" widget="badge"
-                                       decoration-success="payment_status == 'success'"
-                                       decoration-danger="payment_status == 'failed'"
-                                       decoration-info="payment_status == 'pending'"/>
+                                    decoration-success="payment_status == 'success'"
+                                    decoration-danger="payment_status == 'failed'"
+                                    decoration-info="payment_status == 'pending'" />
                             </group>
                             <group>
                                 <field name="payment_result" widget="text"
-                                       placeholder="Payment result will appear here..."
-                                       nolabel="1"/>
+                                    placeholder="Payment result will appear here..."
+                                    nolabel="1" />
                             </group>
                             <footer>
-                                <button name="action_test_payment" string="Test Payment" 
-                                        type="object" class="btn-primary"/>
+                                <button name="action_test_payment" string="Test Payment"
+                                    type="object" class="btn-primary" />
                             </footer>
                         </page>
                     </notebook>
                 </sheet>
-                
+
                 <footer>
-                    <button name="action_test_all" string="Test All" 
-                            type="object" class="btn-success"/>
-                    <button name="action_reset" string="Reset" 
-                            type="object" class="btn-secondary"/>
-                    <button string="Close" class="btn-secondary" special="cancel"/>
+                    <button name="action_test_all" string="Test All"
+                        type="object" class="btn-success" />
+                    <button name="action_reset" string="Reset"
+                        type="object" class="btn-secondary" />
+                    <button string="Close" class="btn-secondary" special="cancel" />
                 </footer>
             </form>
         </field>
     </record>
-    
+
     <!-- Action to open wizard -->
     <record id="action_smart_billing_test_wizard" model="ir.actions.act_window">
         <field name="name">Test SmartBilling API</field>
@@ -109,11 +109,11 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
-    
+
     <!-- Menu item (under Settings > Smart Billing) -->
     <menuitem id="menu_smart_billing_test_api"
-              name="Test API"
-              parent="pesantren_smart_billing.menu_smart_billing_config"
-              action="action_smart_billing_test_wizard"
-              sequence="100"/>
+        name="Test API"
+        parent="pesantren_smart_billing.menu_smart_billing_config"
+        action="action_smart_billing_test_wizard"
+        sequence="100" />
 </odoo>

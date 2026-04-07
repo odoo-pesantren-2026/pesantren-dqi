@@ -1,165 +1,5 @@
-# from odoo import http
-# from odoo.http import request
-# from odoo.exceptions import ValidationError
 
-# class SiswaController(http.Controller):
-
-#     @http.route('/siswa/get_data', type='json', auth='user')
-#     def get_data(self, domain=None):
-#         """
-#         Mengambil data dari model `res.partner` dengan filter domain opsional.
-        
-#         :param domain: List berisi filter domain Odoo untuk memfilter data siswa (opsional).
-#         :return: List berisi data siswa sesuai filter yang diberikan.
-#         """
-#         try:
-#             # Jika tidak ada domain, gunakan list kosong agar semua data diambil
-#             domain = domain or []
-
-#             # Jika domain diberikan, batasi hasil pencarian menjadi satu data
-#             limit = 1 if domain else None
-
-#             # Cari data sesuai domain yang diberikan dengan limit jika diperlukan
-#             siswa_records = request.env['res.partner'].sudo().search(domain, limit=limit)
-
-#             data = [{
-#                 'partner_id': record.id,
-#                 'name': record.name,
-#                 'nis': record.nis,
-#                 'wallet_balance': record.wallet_balance,
-#                 'pin': record.wallet_pin,
-#             } for record in siswa_records]
-
-#             return data
-#         except Exception as e:
-#             return {'error': str(e)}
-
-#     # @http.route('/siswa/deduct_wallet', type='json', auth='user')
-#     # def deduct_wallet(self, partner_id, amount):
-#     #     """
-#     #     Mengurangi wallet_balance pada partner yang diberikan dengan amount tertentu.
-        
-#     #     :param partner_id: ID dari partner (siswa) yang wallet_balance-nya akan dikurangi.
-#     #     :param amount: Jumlah yang akan dikurangi dari wallet_balance.
-#     #     :return: Status sukses atau error.
-#     #     """
-#     #     try:
-#     #         # Validasi amount harus positif
-#     #         if amount <= 0:
-#     #             raise ValidationError("Jumlah yang dikurangi harus lebih besar dari nol.")
-            
-#     #         # Cari partner berdasarkan ID
-#     #         partner = request.env['res.partner'].sudo().browse(partner_id)
-#     #         partnerTransaksi = request.env['pos.wallet.transaction'].sudo().browse(partner_id)
-
-#     #         transaksi_terbaru = request.env['pos.wallet.transaction'].search([
-#     #             ('partner_id', '=', partnerTransaksi)
-#     #         ],order="create_date desc", limit=1)
-            
-#     #         # Validasi jika partner ditemukan
-#     #         if not partner.exists():
-#     #             raise ValidationError("Siswa dengan ID tersebut tidak ditemukan.")
-            
-#     #         # Validasi jika saldo mencukupi
-#     #         if partner.wallet_balance < amount:
-#     #             raise ValidationError("Saldo tidak mencukupi untuk melakukan pengurangan.")
-
-#     #         # Kurangi saldo
-#     #         partner.sudo().write({'wallet_balance': partner.wallet_balance - amount})
-#     #         partnerTransaksi.sudo().write({
-#     #             'amount': transaksi_terbaru.amount - amount
-#     #         })
-
-#     #         return {'success': True, 'new_balance': partner.wallet_balance}
-#     #     except ValidationError as e:
-#     #         return {'error': str(e)}
-#     #     except Exception as e:
-#     #         return {'error': 'Terjadi kesalahan: ' + str(e)}
-
-    
-    
-#     @http.route('/siswa/deduct_wallet', type='json', auth='user')
-#     def deduct_wallet(self, partner_id, amount):
-#         """
-#         Mengurangi wallet_balance pada partner yang diberikan dengan amount tertentu.
-            
-#         :param partner_id: ID dari partner (siswa) yang wallet_balance-nya akan dikurangi.
-#         :param amount: Jumlah yang akan dikurangi dari wallet_balance.
-#         :return: Status sukses atau error.
-#         """
-#         try:
-#             # Validasi amount harus positif
-#             if amount <= 0:
-#                 raise ValidationError("Jumlah yang dikurangi harus lebih besar dari nol.")
-                
-#             # Cari partner berdasarkan ID
-#             partner = request.env['res.partner'].sudo().browse(partner_id)
-            
-#             # Validasi jika partner ditemukan
-#             if not partner.exists():
-#                 raise ValidationError("Siswa dengan ID tersebut tidak ditemukan.")
-                
-#             # Validasi jika saldo mencukupi
-#             if partner.wallet_balance < amount:
-#                 raise ValidationError("Saldo tidak mencukupi untuk melakukan pengurangan.")
-            
-#             # Cari transaksi terbaru untuk partner ini
-#             transaksi_terbaru = request.env['pos.wallet.transaction'].search([
-#                 ('partner_id', '=', partner_id)  # Gunakan partner_id, bukan objek
-#             ], order="create_date desc", limit=1)
-            
-#             # Kurangi saldo
-#             partner.sudo().write({'wallet_balance': partner.wallet_balance - amount})
-            
-#             # Update juga transaksi terbaru jika ditemukan
-#             if transaksi_terbaru:
-#                 transaksi_terbaru.sudo().write({
-#                     'amount': transaksi_terbaru.amount - amount
-#                 })
-            
-#             return {'success': True, 'new_balance': partner.wallet_balance}
-#         except ValidationError as e:
-#             return {'error': str(e)}
-#         except Exception as e:
-#             return {'error': 'Terjadi kesalahan: ' + str(e)}
-
-#     @http.route('/siswa/get_data/bar', type='json', auth='user')
-#     def get_data_bar(self, barcode=None):
-#         """
-#         Mengambil data dari model `res.partner` berdasarkan barcode.
-        
-#         :param barcode: String berisi barcode untuk memfilter data siswa (opsional).
-#         :return: Dictionary berisi data siswa sesuai barcode yang diberikan.
-#         """
-#         try:
-#             # Jika barcode tidak diberikan, kembalikan error
-#             if not barcode:
-#                 return #{'error': 'Barcode tidak diberikan'}
-
-#             # Cari data siswa berdasarkan barcode
-#             siswa_record = request.env['res.partner'].sudo().search([('barcode', '=', barcode)], limit=1)
-
-#             # Jika tidak ditemukan, kembalikan pesan error
-#             if not siswa_record:
-#                 return #{'error': 'Data siswa tidak ditemukan'}
-
-#             data = {
-#                 'partner_id': siswa_record.id,
-#                 'name': siswa_record.name,
-#                 'nis': siswa_record.nis,
-#                 'wallet_balance': siswa_record.wallet_balance,
-#                 'pin': siswa_record.wallet_pin,
-#             }
-
-#             return data
-#         except Exception as e:
-#             # raise ValidationError(f"Error fetching data for barcode {barcode}: {str(e)}")
-#             return #{'error': str(e)}
-
-
-
-
-from odoo import http,fields
+from odoo import http, fields
 from odoo.http import request
 from odoo.exceptions import ValidationError, UserError
 from datetime import datetime, timedelta
@@ -168,13 +8,14 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+
 class SiswaController(http.Controller):
 
     @http.route('/siswa/get_data', type='json', auth='user')
     def get_data(self, domain=None):
         """
         Mengambil data dari model `res.partner` dengan filter domain opsional.
-        
+
         :param domain: List berisi filter domain Odoo untuk memfilter data siswa (opsional).
         :return: List berisi data siswa sesuai filter yang diberikan.
         """
@@ -186,7 +27,8 @@ class SiswaController(http.Controller):
             limit = 1 if domain else None
 
             # Cari data sesuai domain yang diberikan dengan limit jika diperlukan
-            siswa_records = request.env['res.partner'].sudo().search(domain, limit=limit)
+            siswa_records = request.env['res.partner'].sudo().search(
+                domain, limit=limit)
 
             data = [{
                 'partner_id': record.id,
@@ -199,47 +41,51 @@ class SiswaController(http.Controller):
             return data
         except Exception as e:
             return {'error': str(e)}
-    
+
     @http.route('/siswa/deduct_wallet', type='json', auth='user')
     def deduct_wallet(self, partner_id, amount, order_details=None):
         """
         Mengurangi wallet_balance pada partner yang diberikan dengan amount tertentu.
-            
+
         :param partner_id: ID dari partner (siswa) yang wallet_balance-nya akan dikurangi.
         :param amount: Jumlah yang akan dikurangi dari wallet_balance.
         :return: Status sukses atau error.
         """
         try:
             if amount <= 0:
-                raise UserError("Jumlah yang dikurangi harus lebih besar dari nol.")
-                
+                raise UserError(
+                    "Jumlah yang dikurangi harus lebih besar dari nol.")
+
             # Cari partner berdasarkan ID
             partner = request.env['res.partner'].sudo().browse(partner_id)
-            santri = request.env['cdn.siswa'].sudo().search([('partner_id', '=', partner_id)], limit=1)
+            santri = request.env['cdn.siswa'].sudo().search(
+                [('partner_id', '=', partner_id)], limit=1)
             timestamp = fields.Datetime.now()
 
-            santri = request.env['cdn.siswa'].sudo().search([('partner_id', '=', partner_id)], limit=1)
+            santri = request.env['cdn.siswa'].sudo().search(
+                [('partner_id', '=', partner_id)], limit=1)
 
             if santri.status_akun in ['nonaktif', 'blokir']:
                 return {'error': "Pembayaran ini tidak dapat diproses karena statusnya sedang tidak aktif atau telah diblokir. Silakan hubungi pihak pengurus pesantren untuk informasi lebih lanjut."}
-        
+
             if santri:
                 # 1. Pengecekan Limit (Centralized)
                 # Ini akan raise UserError jika limit tercapai, yang ditangkap oleh 'except UserError'
                 santri._check_limit(amount)
 
-            
             # Validasi jika partner ditemukan
             if not partner.exists():
                 raise UserError("Siswa dengan ID tersebut tidak ditemukan.")
-                
+
             # Validasi jika saldo mencukupi
             if partner.saldo_uang_saku < amount:
-                raise UserError("Saldo tidak mencukupi untuk melakukan pengurangan.")
-            
+                raise UserError(
+                    "Saldo tidak mencukupi untuk melakukan pengurangan.")
+
             nama_santri = santri.name or "Santri"
 
-            keterangan = self._generate_transaction_description(order_details, amount, santri_name=nama_santri)
+            keterangan = self._generate_transaction_description(
+                order_details, amount, santri_name=nama_santri)
 
             transaksi_terbaru = request.env['pos.wallet.transaction'].search([
                 ('partner_id', '=', partner_id)
@@ -248,8 +94,9 @@ class SiswaController(http.Controller):
             # transaksi_saldo_saku = request.env['cdn_uang_saku'].search([
             #     ('partner_id', '=', partner_id)
             # ], order="create_date desc", limit=1)
-            
-            partner.sudo().write({'saldo_uang_saku': partner.saldo_uang_saku - amount})
+
+            partner.sudo().write(
+                {'saldo_uang_saku': partner.saldo_uang_saku - amount})
 
             request.env['cdn.uang_saku'].sudo().create({
                 'tgl_transaksi': timestamp,
@@ -266,7 +113,7 @@ class SiswaController(http.Controller):
                 transaksi_terbaru.sudo().write({
                     'amount': transaksi_terbaru.amount - amount
                 })
-            
+
             return {'success': True, 'new_balance': partner.saldo_uang_saku}
         except UserError as e:
             return {'error': str(e)}
@@ -279,7 +126,8 @@ class SiswaController(http.Controller):
         Contoh hasil: "Transaksi POS atas nama Ahmad: Pembelian 2x Nasi Goreng, 1x Nasi Pecel. Total Rp 30.000"
         """
         try:
-            total_amount = order_details.get('total_amount', amount) if order_details else amount
+            total_amount = order_details.get(
+                'total_amount', amount) if order_details else amount
             items = order_details.get('items', []) if order_details else []
 
             # Susun deskripsi item maksimal 3 biar pendek
@@ -295,12 +143,11 @@ class SiswaController(http.Controller):
         except Exception as e:
             return f"Transaksi POS - Total: Rp {amount:,.0f} (Error: {str(e)})"
 
-
     @http.route('/siswa/get_data/bar', type='json', auth='user')
     def get_data_bar(self, barcode=None):
         """
         Mengambil data dari model `res.partner` berdasarkan barcode.
-        
+
         :param barcode: String berisi barcode untuk memfilter data siswa (opsional).
         :return: Dictionary berisi data siswa sesuai barcode yang diberikan.
         """
@@ -309,8 +156,13 @@ class SiswaController(http.Controller):
             if not barcode:
                 return None
 
-            # Cari data siswa berdasarkan barcode
-            siswa_record = request.env['res.partner'].sudo().search([('barcode', '=', barcode)], limit=1)
+            # Cari data siswa berdasarkan barcode, virtual_account, atau va_saku
+            siswa_record = request.env['res.partner'].sudo().search([
+                '|', '|',
+                ('barcode', '=', barcode),
+                ('virtual_account', '=', barcode),
+                ('va_saku', '=', barcode)
+            ], limit=1)
 
             # Jika tidak ditemukan, kembalikan None
             if not siswa_record:
@@ -326,43 +178,45 @@ class SiswaController(http.Controller):
 
             return data
         except Exception as e:
-            _logger.error(f"Error fetching data for barcode {barcode}: {str(e)}")
+            _logger.error(
+                f"Error fetching data for barcode {barcode}: {str(e)}")
             return None
 
     @http.route('/siswa/search', type='json', auth='user')
     def search_siswa(self, query=None, no_limit=False, **kw):
         """
         Mencari data siswa berdasarkan query pencariannya.
-        
+
         :param query: String berisi kata kunci pencarian.
         :param no_limit: Boolean yang menentukan apakah ada batasan jumlah hasil atau tidak.
         :return: Dictionary berisi list data siswa yang cocok dengan pencarian.
         """
         if not query:
             return {'partners': []}
-        
+
         # Tentukan limit berdasarkan parameter no_limit
         limit = None if no_limit else 100  # Default 100 jika no_limit tidak diaktifkan
-        
+
         # Cari di database lokal Odoo
         local_partners = request.env['res.partner'].search([
-            '|', '|', '|',
+            '|', '|', '|', '|', '|',
             ('name', 'ilike', query),
             ('barcode', 'ilike', query),
             ('nis', 'ilike', query),
-            ('phone', 'ilike', query)
+            ('phone', 'ilike', query),
+            ('virtual_account', 'ilike', query),
+            ('va_saku', 'ilike', query)
         ], limit=limit)
-        
-        partners_list = local_partners.read(['id', 'name', 'barcode', 'nis', 'saldo_uang_saku', 'street', 'email', 'phone'])
-        
+
+        partners_list = local_partners.read(
+            ['id', 'name', 'barcode', 'nis', 'saldo_uang_saku', 'virtual_account', 'va_saku', 'street', 'email', 'phone'])
+
         # Format wallet_balance untuk tampilan
         for partner in partners_list:
             if 'saldo_uang_saku' in partner:
                 partner['wallet_balance_display'] = f"Rp {partner['saldo_uang_saku']:,.0f}"
-        
+
         # Return combined results
         return {
             'partners': partners_list
         }
-
-

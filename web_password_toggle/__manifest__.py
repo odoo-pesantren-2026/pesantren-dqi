@@ -1,8 +1,4 @@
-# ========================================
-# MODULE BARU: web_password_toggle
-# ========================================
-
-# File: web_password_toggle/__manifest__.py
+# -*- coding: utf-8 -*-
 
 {
     'name': 'Password Toggle Widget',

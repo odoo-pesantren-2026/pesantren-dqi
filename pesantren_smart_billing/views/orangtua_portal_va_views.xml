@@ -5,28 +5,29 @@
              VIEW: List VA Anak untuk Portal Orang Tua
              Menampilkan informasi VA santri yang bisa dilihat orang tua
         =================================================================== -->
-        
+
         <!-- Model virtual untuk menampilkan VA info ke orang tua -->
         <!-- Kita buat view siswa dengan fokus pada VA -->
-        
+
         <record id="view_siswa_va_list_orangtua" model="ir.ui.view">
             <field name="name">cdn.siswa.list.va.orangtua</field>
             <field name="model">cdn.siswa</field>
             <field name="priority">100</field>
             <field name="arch" type="xml">
-                <list create="false" edit="false" delete="false" decoration-warning="not partner_id.va_saku">
-                    <field name="name" string="Nama Santri"/>
-                    <field name="nis" string="NIS"/>
-                    <field name="ruang_kelas_id" string="Kelas"/>
-                    <field name="partner_id" column_invisible="1"/>
-                    <field name="va_saku" string="No. Virtual Account"/>
-                    <field name="va_saku_bank" string="Bank"/>
-                    <field name="va_saku_expiry" string="Berlaku Hingga"/>
-                    <field name="saldo_uang_saku" string="Saldo" widget="monetary"/>
+                <list create="false" edit="false" delete="false"
+                    decoration-warning="not partner_id.va_saku">
+                    <field name="name" string="Nama Santri" />
+                    <field name="nis" string="NIS" />
+                    <field name="ruang_kelas_id" string="Kelas" />
+                    <field name="partner_id" column_invisible="1" />
+                    <field name="va_saku" string="No. Virtual Account" />
+                    <field name="va_saku_bank" string="Bank" />
+                    <field name="va_saku_expiry" string="Berlaku Hingga" />
+                    <field name="saldo_uang_saku" string="Saldo" widget="monetary" />
                 </list>
             </field>
         </record>
-        
+
         <record id="view_siswa_va_form_orangtua" model="ir.ui.view">
             <field name="name">cdn.siswa.form.va.orangtua</field>
             <field name="model">cdn.siswa</field>
@@ -36,55 +37,65 @@
                     <sheet>
                         <div class="oe_title">
                             <h1>
-                                <field name="name" readonly="1"/>
+                                <field name="name" readonly="1" />
                             </h1>
                             <h3>
-                                <field name="nis" readonly="1" string="NIS"/>
+                                <field name="nis" readonly="1" string="NIS" />
                             </h3>
                         </div>
-                        
+
                         <group>
                             <group string="Informasi Santri">
-                                <field name="ruang_kelas_id" readonly="1"/>
-                                <field name="saldo_uang_saku" readonly="1" widget="monetary"/>
+                                <field name="ruang_kelas_id" readonly="1" />
+                                <field name="saldo_uang_saku" readonly="1" widget="monetary" />
                             </group>
                             <group string="Batasan Penggunaan Saldo">
-                                <field name="is_limit_active" string="Limit Aktif"/>
-                                <field name="limit" string="Periode" invisible="not is_limit_active"/>
-                                <field name="amount" string="Batas Nominal" widget="monetary" invisible="not is_limit_active"/>
-                                <field name="remaining_limit" string="Sisa Limit" widget="monetary" invisible="not is_limit_active" decoration-danger="remaining_limit == 0" decoration-warning="remaining_limit &lt; 10000"/>
-                                <button name="action_setlimit" type="object" string="⚙️ Atur Limit" class="btn-primary mt-2" 
-                                        groups="pesantren_kesantrian.group_kesantrian_orang_tua"/>
+                                <field name="is_limit_active" string="Limit Aktif" />
+                                <field name="limit" string="Periode" invisible="not is_limit_active" />
+                                <field name="amount" string="Batas Nominal" widget="monetary"
+                                    invisible="not is_limit_active" />
+                                <field name="remaining_limit" string="Sisa Limit" widget="monetary"
+                                    invisible="not is_limit_active"
+                                    decoration-danger="remaining_limit == 0"
+                                    decoration-warning="remaining_limit &lt; 10000" />
+                                <button name="action_setlimit" type="object" string="⚙️ Atur Limit"
+                                    class="btn-primary mt-2"
+                                    groups="pesantren_kesantrian.group_kesantrian_orang_tua" />
                             </group>
                         </group>
                         <group>
                             <group string="Virtual Account untuk Top-up">
-                                <field name="va_saku" readonly="1" string="No. VA" 
-                                       widget="CopyClipboardChar"
-                                       help="Salin nomor ini untuk transfer"/>
-                                <field name="va_saku_bank" readonly="1" string="Bank Tujuan"/>
-                                <field name="va_saku_expiry" readonly="1" string="Berlaku Hingga"/>
+                                <field name="va_saku" readonly="1" string="No. VA"
+                                    widget="CopyClipboardChar"
+                                    help="Salin nomor ini untuk transfer" />
+                                <field name="va_saku_bank" readonly="1" string="Bank Tujuan" />
+                                <field name="va_saku_expiry" readonly="1" string="Berlaku Hingga" />
                             </group>
                         </group>
-                        
+
                         <group string="Cara Top-up Saldo" invisible="not va_saku">
                             <div class="alert alert-info" style="margin-bottom: 20px;">
-                                <h4><strong>Petunjuk Transfer:</strong></h4>
+                                <h4>
+                                    <strong>Petunjuk Transfer:</strong>
+                                </h4>
                                 <ol>
                                     <li>Buka aplikasi <strong>BSI Mobile</strong> atau M-Banking</li>
-                                    <li>Pilih menu <strong>Transfer</strong> → <strong>Virtual Account</strong></li>
-                                    <li>Masukkan nomor VA: <strong><field name="va_saku" readonly="1" nolabel="1" class="d-inline"/></strong></li>
+                                    <li>Pilih menu <strong>Transfer</strong> → <strong>Virtual
+                                        Account</strong></li>
+                                    <li>Masukkan nomor VA: <strong>
+                                            <field name="va_saku" readonly="1" nolabel="1"
+                                                class="d-inline" />
+                                        </strong></li>
                                     <li>Masukkan nominal top-up sesuai keinginan Anda</li>
                                     <li>Konfirmasi dan selesaikan pembayaran</li>
                                 </ol>
-                                <hr/>
+                                <hr />
                                 <p class="mb-0">
-                                    <strong>Catatan:</strong> Saldo akan otomatis bertambah setelah transfer berhasil.
-                                    Anda bisa transfer dengan nominal berapapun.
-                                </p>
+                                    <strong>Catatan:</strong> Saldo akan otomatis bertambah setelah
+                                    transfer berhasil. Anda bisa transfer dengan nominal berapapun. </p>
                             </div>
                         </group>
-                        
+
                         <group invisible="va_saku">
                             <div class="alert alert-warning">
                                 <strong>Virtual Account Belum Tersedia</strong>
@@ -98,7 +109,7 @@
                 </form>
             </field>
         </record>
-        
+
         <!-- Action Window untuk Orang Tua melihat VA Anak -->
         <record id="action_orangtua_lihat_va_anak" model="ir.actions.act_window">
             <field name="name">Virtual Account Anak</field>
@@ -116,28 +127,28 @@
                 </p>
             </field>
         </record>
-        
+
         <!-- Binding ke view yang sudah dibuat -->
         <record id="action_orangtua_lihat_va_anak_list" model="ir.actions.act_window.view">
-            <field name="sequence" eval="1"/>
+            <field name="sequence" eval="1" />
             <field name="view_mode">list</field>
-            <field name="view_id" ref="view_siswa_va_list_orangtua"/>
-            <field name="act_window_id" ref="action_orangtua_lihat_va_anak"/>
+            <field name="view_id" ref="view_siswa_va_list_orangtua" />
+            <field name="act_window_id" ref="action_orangtua_lihat_va_anak" />
         </record>
         <record id="action_orangtua_lihat_va_anak_form" model="ir.actions.act_window.view">
-            <field name="sequence" eval="2"/>
+            <field name="sequence" eval="2" />
             <field name="view_mode">form</field>
-            <field name="view_id" ref="view_siswa_va_form_orangtua"/>
-            <field name="act_window_id" ref="action_orangtua_lihat_va_anak"/>
+            <field name="view_id" ref="view_siswa_va_form_orangtua" />
+            <field name="act_window_id" ref="action_orangtua_lihat_va_anak" />
         </record>
-        
+
         <!-- Menu Item di Portal Orang Tua - Kategori Keuangan -->
-        <menuitem id="menu_orangtua_va_anak" 
-                  name="Virtual Account" 
-                  parent="pesantren_orangtua.keuangan_menu_categ" 
-                  action="action_orangtua_lihat_va_anak" 
-                  sequence="10"
-                  groups="pesantren_kesantrian.group_kesantrian_orang_tua"/>
-        
+        <menuitem id="menu_orangtua_va_anak"
+            name="Virtual Account"
+            parent="pesantren_orangtua.keuangan_menu_categ"
+            action="action_orangtua_lihat_va_anak"
+            sequence="10"
+            groups="pesantren_kesantrian.group_kesantrian_orang_tua" />
+
     </data>
 </odoo>

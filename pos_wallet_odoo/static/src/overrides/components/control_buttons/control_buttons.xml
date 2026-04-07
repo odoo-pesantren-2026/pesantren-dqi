@@ -2,16 +2,11 @@
 <templates id="template" xml:space="preserve">
     <!-- Mewarisi dari PaymentScreenValidate -->
         <t t-name="pos_wallet_odoo.ValidateBaypas" t-inherit="point_of_sale.PaymentScreenValidate" t-inherit-mode="extension">
-            <!-- Mengganti tombol validate -->
-            <xpath expr="//t[(@t-if='ui.isSmall')]" position="replace">
-                <t t-if="ui.isSmall">
-                    <button class="btn-switchpane validation-button btn btn-primary btn-lg flex-fill py-3 lh-lg" t-att-class="{ secondary: !(currentOrder.is_paid() and currentOrder._isValidEmptyOrder()) }" t-on-click="() => this.clickSetSubTotal()">
-                        <span>Validate</span>
-                    </button>
-                </t>
-            </xpath>
-            <xpath expr="//button[@class='button next validation btn btn-primary btn-lg w-50 py-3 lh-lg']" position="replace">
-                <button class="button next validation btn btn-primary btn-lg w-50 py-3 lh-lg" t-attf-class="{{currentOrder.is_paid() and currentOrder._isValidEmptyOrder() ? 'highlight' : 'disabled'}}" t-on-click="() => this.clickSetSubTotal()">
+            <!-- Mengganti tombol validate untuk Odoo 17 -->
+            <xpath expr="//button[contains(@class, 'validation-button')]" position="replace">
+                <button class="validation-button next btn btn-primary btn-lg py-3 lh-lg" 
+                    t-attf-class="{{ ui.isSmall ? 'btn-switchpane flex-fill' : 'button next w-50' }} {{currentOrder.canBeValidated() ? 'highlight' : 'disabled'}}" 
+                    t-on-click="() => this.clickSetSubTotal()">
                     <span class="next_text">Validate</span>
                 </button>
             </xpath>

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
@@ -52,10 +53,10 @@ class CdnOrangtua(models.Model):
         """Open list of unpaid invoices for children"""
         self.ensure_one()
         partner_ids = self.siswa_ids.mapped('partner_id').ids
-        
+
         if not partner_ids:
             raise UserError("Anda tidak memiliki data anak yang terdaftar.")
-        
+
         return {
             'name': 'Tagihan Anak',
             'type': 'ir.actions.act_window',
@@ -77,10 +78,10 @@ class CdnOrangtua(models.Model):
         """Open list of Smart Billing transactions for children"""
         self.ensure_one()
         partner_ids = self.siswa_ids.mapped('partner_id').ids
-        
+
         if not partner_ids:
             raise UserError("Anda tidak memiliki data anak yang terdaftar.")
-        
+
         return {
             'name': 'Transaksi Smart Billing',
             'type': 'ir.actions.act_window',
@@ -97,19 +98,20 @@ class CdnOrangtua(models.Model):
         Orang tua bisa pilih anak mana yang mau di-topup.
         """
         self.ensure_one()
-        
+
         if not self.siswa_ids:
             raise UserError("Anda tidak memiliki data anak yang terdaftar.")
-        
+
         # Filter children who have VA
-        siswa_with_va = self.siswa_ids.filtered(lambda s: s.partner_id and s.partner_id.va_saku)
-        
+        siswa_with_va = self.siswa_ids.filtered(
+            lambda s: s.partner_id and s.partner_id.va_saku)
+
         if not siswa_with_va:
             raise UserError(
                 "Belum ada anak yang memiliki Virtual Account.\n\n"
                 "Silakan hubungi admin pesantren untuk mendaftarkan VA."
             )
-        
+
         # If only 1 child with VA, open wizard directly
         if len(siswa_with_va) == 1:
             siswa = siswa_with_va[0]
@@ -123,7 +125,7 @@ class CdnOrangtua(models.Model):
                     'default_partner_id': siswa.partner_id.id,
                 }
             }
-        
+
         # If multiple children, open selection wizard
         return {
             'name': 'Pilih Anak untuk Top-up',
@@ -141,10 +143,10 @@ class CdnOrangtua(models.Model):
         View VA information for all children.
         """
         self.ensure_one()
-        
+
         if not self.siswa_ids:
             raise UserError("Anda tidak memiliki data anak yang terdaftar.")
-        
+
         # Build VA information
         va_info = []
         for siswa in self.siswa_ids:
@@ -154,7 +156,7 @@ class CdnOrangtua(models.Model):
                     'va': siswa.partner_id.va_saku,
                     'bank': siswa.partner_id.va_saku_bank or '-',
                 })
-        
+
         if not va_info:
             return {
                 'type': 'ir.actions.client',
@@ -166,14 +168,14 @@ class CdnOrangtua(models.Model):
                     'sticky': False,
                 }
             }
-        
+
         # Format message
         message = "Virtual Account Anak:\n\n"
         for info in va_info:
             message += f"👤 {info['name']}\n"
             message += f"🏦 Bank: {info['bank']}\n"
             message += f"💳 VA: {info['va']}\n\n"
-        
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',

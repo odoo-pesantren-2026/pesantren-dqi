@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
         <!-- Smart Billing Root Menu -->
@@ -7,23 +7,23 @@
             name="Smart Billing"
             web_icon="pesantren_smart_billing,static/description/icon.png"
             groups="account.group_account_manager"
-            sequence="25"/>
-        
+            sequence="25" />
+
         <!-- Transactions Submenu -->
         <menuitem
             id="menu_smart_billing_transactions"
             name="Transaksi"
             parent="menu_smart_billing_root"
             action="action_smart_billing_transaction"
-            sequence="10"/>
-        
+            sequence="10" />
+
         <!-- Configuration Submenu -->
         <menuitem
             id="menu_smart_billing_config"
             name="Konfigurasi"
             parent="menu_smart_billing_root"
-            sequence="90"/>
-        
+            sequence="90" />
+
         <!-- Settings Menu Item (opens account settings with smart billing focus) -->
         <record id="action_smart_billing_settings" model="ir.actions.act_window">
             <field name="name">Smart Billing Settings</field>
@@ -32,12 +32,12 @@
             <field name="target">inline</field>
             <field name="context">{'module': 'account'}</field>
         </record>
-        
+
         <menuitem
             id="menu_smart_billing_settings"
             name="Settings"
             parent="menu_smart_billing_config"
             action="action_smart_billing_settings"
-            sequence="10"/>
+            sequence="10" />
     </data>
 </odoo>

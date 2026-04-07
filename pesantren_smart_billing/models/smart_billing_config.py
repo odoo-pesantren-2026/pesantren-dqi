@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from odoo import api, fields, models
 
 
@@ -38,7 +39,7 @@ class ResConfigSettings(models.TransientModel):
         default=False,
         help='Aktifkan untuk mode production. Nonaktifkan untuk sandbox/testing.'
     )
-    
+
     # BSI Specific Configuration
     smart_billing_bsi_client_id = fields.Char(
         string='BSI Client ID',
@@ -67,7 +68,7 @@ class ResConfigSettings(models.TransientModel):
         default='http://localhost:8001',
         help='URL mockup API untuk testing (contoh: http://localhost:8001)'
     )
-    
+
     # VA Configuration
     smart_billing_va_bank = fields.Selection([
         ('bsi', 'BSI'),
@@ -94,7 +95,7 @@ class ResConfigSettings(models.TransientModel):
         default=365,
         help='Durasi berlakunya VA permanen dalam hari (default 1 tahun)'
     )
-    
+
     # Webhook Configuration
     smart_billing_webhook_url = fields.Char(
         string='Webhook URL (Generic)',
@@ -116,7 +117,7 @@ class ResConfigSettings(models.TransientModel):
         compute='_compute_webhook_url',
         help='URL untuk BSI SNAP BI Payment Notification'
     )
-    
+
     # Feature Toggles
     smart_billing_auto_reconcile = fields.Boolean(
         string='Auto Reconcile Invoice',
@@ -139,7 +140,8 @@ class ResConfigSettings(models.TransientModel):
 
     @api.depends('smart_billing_provider')
     def _compute_webhook_url(self):
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        base_url = self.env['ir.config_parameter'].sudo(
+        ).get_param('web.base.url')
         for record in self:
             provider = record.smart_billing_provider or 'dummy'
             record.smart_billing_webhook_url = f"{base_url}/smart-billing/notification/{provider}"
@@ -147,14 +149,14 @@ class ResConfigSettings(models.TransientModel):
             record.smart_billing_bsi_auth_url = f"{base_url}/api/v1.0/access-token/b2b"
             record.smart_billing_bsi_inquiry_url = f"{base_url}/api/v1.0/transfer-va/inquiry"
             record.smart_billing_bsi_payment_url = f"{base_url}/api/v1.0/transfer-va/payment"
-    
+
     def action_test_connection(self):
         """Test connection to the selected provider"""
         self.ensure_one()
-        
+
         provider = self._get_billing_provider()
         config = provider.get_config()
-        
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -165,18 +167,19 @@ class ResConfigSettings(models.TransientModel):
                 'sticky': False,
             }
         }
-    
+
     def _get_billing_provider(self):
         """Get the currently configured billing provider"""
         provider_code = self.env['ir.config_parameter'].sudo().get_param(
             'smart_billing.provider', 'dummy'
         )
-        
+
         provider_map = {
             'dummy': 'smart.billing.provider.dummy',
             'bsi': 'smart.billing.provider.bsi',
             'tki': 'smart.billing.provider.tki',
         }
-        
-        model_name = provider_map.get(provider_code, 'smart.billing.provider.dummy')
+
+        model_name = provider_map.get(
+            provider_code, 'smart.billing.provider.dummy')
         return self.env[model_name]

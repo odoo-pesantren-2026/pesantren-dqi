@@ -23,10 +23,10 @@
         </xpath>
     </t>
     <t t-name="pos_wallet_odoo.CustomControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
-        <xpath expr="//button[@class='btn btn-light btn-lg flex-shrink-0 ms-auto']" position="replace">
-            <button class="btn btn-light btn-lg flex-shrink-0 ms-auto" t-if="!props.showRemainingButtons and !ui.isSmall and props.onClickMore" t-on-click="props.onClickMore">
-            Aktivitas
-        </button>
+        <xpath expr="//button[contains(@class, 'more-btn')]" position="replace">
+            <button class="more-btn btn btn-light btn-lg flex-shrink-0" t-att-class="{'ms-auto': !this.pos.showSaveOrderButton}" t-if="!props.showRemainingButtons and !ui.isSmall and props.onClickMore" t-on-click="props.onClickMore">
+                Aktivitas
+            </button>
         </xpath>
     </t>
 </templates>

@@ -20,7 +20,7 @@ class TopupSaldoWizard(models.TransientModel):
         string='Santri',
         compute='_compute_siswa_id'
     )
-    
+
     # VA Information (readonly)
     va_number = fields.Char(
         string='Nomor Virtual Account',
@@ -37,7 +37,7 @@ class TopupSaldoWizard(models.TransientModel):
         related='partner_id.va_saku_expiry',
         readonly=True
     )
-    
+
     # Current balance
     saldo_saat_ini = fields.Float(
         string='Saldo Saat Ini',
@@ -48,13 +48,13 @@ class TopupSaldoWizard(models.TransientModel):
         string='Saldo (Formatted)',
         compute='_compute_saldo'
     )
-    
+
     # Instructions
     instruksi = fields.Text(
         string='Cara Top-up',
         compute='_compute_instruksi'
     )
-    
+
     @api.depends('partner_id')
     def _compute_siswa_id(self):
         for record in self:
@@ -62,17 +62,18 @@ class TopupSaldoWizard(models.TransientModel):
                 ('partner_id', '=', record.partner_id.id)
             ], limit=1)
             record.siswa_id = siswa.id if siswa else False
-    
+
     @api.depends('siswa_id')
     def _compute_saldo(self):
         for record in self:
             if record.siswa_id:
                 record.saldo_saat_ini = record.siswa_id.saldo_uang_saku or 0
-                record.saldo_display = f"Rp{record.saldo_saat_ini:,.0f}".replace(',', '.')
+                record.saldo_display = f"Rp{record.saldo_saat_ini:,.0f}".replace(
+                    ',', '.')
             else:
                 record.saldo_saat_ini = 0
                 record.saldo_display = "Rp0"
-    
+
     @api.depends('va_number', 'va_bank')
     def _compute_instruksi(self):
         for record in self:
@@ -96,14 +97,14 @@ Catatan:
                 """.strip()
             else:
                 record.instruksi = "Virtual Account belum tersedia."
-    
+
     def action_copy_va(self):
         """Copy VA number to clipboard (opens notification with VA)"""
         self.ensure_one()
-        
+
         if not self.va_number:
             raise UserError("Virtual Account belum tersedia.")
-        
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -114,11 +115,11 @@ Catatan:
                 'sticky': True,
             }
         }
-    
+
     def action_view_history(self):
         """View top-up history for this santri"""
         self.ensure_one()
-        
+
         return {
             'name': f'Riwayat Top-up - {self.siswa_id.name if self.siswa_id else ""}',
             'type': 'ir.actions.act_window',
