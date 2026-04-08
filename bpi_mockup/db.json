@@ -9,6 +9,16 @@
       "status": "settlement",
       "created_at": "2026-03-30T06:44:18.881Z",
       "paid_at": "2026-03-30T08:48:13.443Z"
+    },
+    {
+      "trx_id": "PERMVA-13276532456-20260408",
+      "trx_amount": "1",
+      "customer_name": "Ahmad Arvhie Arsyanendra",
+      "virtual_account": "00113276532456",
+      "datetime_expired": "2027-04-08T01:34:18+0700",
+      "description": "Top-up Saldo Ahmad Arvhie Arsyanendra",
+      "status": "pending",
+      "created_at": "2026-04-08T01:34:18.938Z"
     }
   ],
   "virtual_accounts": [
@@ -19,6 +29,12 @@
       "virtualAccountPhone": "08123456789",
       "totalAmount": {
         "value": 150000,
+        "currency": "IDR"
+      },
+      "status": "paid",
+      "paymentRequestId": "PAY-001",
+      "paidAmount": {
+        "value": "150000",
         "currency": "IDR"
       }
     }

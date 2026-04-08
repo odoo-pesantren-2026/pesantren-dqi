@@ -1,0 +1,7 @@
+{
+  "CID": "001",
+  "SECRET": "secret001",
+  "PARTNER_ID": "001",
+  "DB_NAME": "pesantren-dqi",
+  "ODOO_URL": "http://localhost:8069"
+}

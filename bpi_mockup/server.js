@@ -1,17 +1,33 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { JSONFilePreset } from 'lowdb/node';
-import path from 'path';
+import fs from 'fs';
 
 const app = express();
 const port = process.env.PORT || 8001;
 
 // Configuration (should match Odoo settings)
-const CID = '001';
-const SECRET = 'secret001';
-const ODOO_URL = process.env.ODOO_URL || 'http://localhost:8069';
-const DB_NAME = process.env.DB_NAME || 'pesantren-ubig-local';
-const PARTNER_ID = process.env.PARTNER_ID || '001';
+let config = {
+    CID: '001',
+    SECRET: 'secret001',
+    ODOO_URL: 'http://localhost:8069',
+    DB_NAME: 'pesantren-dqi',
+    PARTNER_ID: '001'
+};
+
+try {
+    const configData = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+    config = { ...config, ...configData };
+    console.log('[BSI Mockup] Configuration loaded from config.json');
+} catch (error) {
+    console.warn('[BSI Mockup] Could not load config.json, using defaults/env');
+}
+
+const CID = process.env.CID || config.CID;
+const SECRET = process.env.SECRET || config.SECRET;
+const ODOO_URL = process.env.ODOO_URL || config.ODOO_URL;
+const DB_NAME = process.env.DB_NAME || config.DB_NAME;
+const PARTNER_ID = process.env.PARTNER_ID || config.PARTNER_ID;
 
 // Initialize lowdb
 const defaultData = { billings: [] };
@@ -189,10 +205,10 @@ app.post('/ext/bnis/', async (req, res) => {
 
 // 1. Auth: POST /api/v1.0/access-token/b2b
 app.post('/api/v1.0/access-token/b2b', (req, res) => {
-    console.log('[SNAP BI] Auth request');
+    console.log('[SNAP BI] Auth request headers:', req.headers);
     res.json({
         responseCode: '2000000',
-        responseMessage: 'Successful',
+        responseMessage: 'Auth Success',
         accessToken: 'mock-access-token-' + Math.random().toString(36).substring(7),
         expiresIn: 900,
         tokenType: 'BearerToken'
@@ -201,23 +217,34 @@ app.post('/api/v1.0/access-token/b2b', (req, res) => {
 
 // 2. Inquiry: POST /api/v1.0/transfer-va/inquiry
 app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
-    const { customerNo, partnerServiceId } = req.body;
-    console.log(`[SNAP BI] Inquiry request for: ${customerNo}`);
+    const { customerNo, virtualAccountNo, partnerServiceId } = req.body;
+    console.log(`[SNAP BI] Inquiry request for: ${customerNo || virtualAccountNo} | Headers:`, req.headers);
 
     await db.read();
-    const va = db.data.virtual_accounts.find(v => v.customerNo === customerNo);
+    const va = db.data.virtual_accounts.find(v =>
+        (customerNo && v.customerNo === customerNo) ||
+        (virtualAccountNo && (partnerServiceId + v.customerNo) === virtualAccountNo) ||
+        (virtualAccountNo && v.virtualAccountNo === virtualAccountNo)
+    );
 
     if (va) {
+        if (va.status === 'paid') {
+            return res.status(404).json({
+                responseCode: '4042414',
+                responseMessage: 'Already paid'
+            });
+        }
+
         res.json({
             responseCode: '2002400',
-            responseMessage: 'Successful',
+            responseMessage: 'Success',
             virtualAccountData: {
                 partnerServiceId: partnerServiceId || 'SBI0001',
                 customerNo: va.customerNo,
                 virtualAccountNo: (partnerServiceId || 'SBI0001') + va.customerNo,
                 virtualAccountName: va.virtualAccountName,
                 totalAmount: {
-                    value: parseFloat(va.totalAmount.value),
+                    value: String(va.totalAmount.value), // Must be string
                     currency: va.totalAmount.currency
                 },
                 virtualAccountEmail: va.virtualAccountEmail,
@@ -227,7 +254,7 @@ app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
             }
         });
     } else {
-        res.json({
+        res.status(404).json({
             responseCode: '4042412',
             responseMessage: 'Bill not found',
         });
@@ -237,34 +264,83 @@ app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
 // 3. Payment: POST /api/v1.0/transfer-va/payment
 app.post('/api/v1.0/transfer-va/payment', async (req, res) => {
     const { customerNo, paymentRequestId, paidAmount } = req.body;
-    console.log(`[SNAP BI] Payment notification for: ${customerNo}, amount: ${paidAmount?.value}`);
+    console.log(`[SNAP BI] Payment notification for: ${customerNo}, amount: ${paidAmount?.value} | Headers:`, req.headers);
 
     await db.read();
     const va = db.data.virtual_accounts.find(v => v.customerNo === customerNo);
 
     if (va) {
+        if (va.status === 'paid') {
+            return res.status(404).json({
+                responseCode: '4042514',
+                responseMessage: 'Already paid'
+            });
+        }
+
+        // Amount validation
+        if (parseFloat(paidAmount?.value) !== parseFloat(va.totalAmount.value)) {
+            return res.status(404).json({
+                responseCode: '4042513',
+                responseMessage: 'Invalid amount'
+            });
+        }
+
+        // Update state
+        va.status = 'paid';
+        va.paymentRequestId = paymentRequestId;
+        va.paidAmount = paidAmount;
+        await db.write();
+
         res.json({
             responseCode: '2002500',
-            responseMessage: 'Successful',
-            virtualAccountData: {
-                partnerServiceId: 'SBI0001',
-                customerNo: va.customerNo,
-                virtualAccountNo: 'SBI0001' + va.customerNo,
-                virtualAccountName: va.virtualAccountName,
-                paidAmount: {
-                    value: parseFloat(paidAmount?.value || 0),
-                    currency: paidAmount?.currency || 'IDR'
-                },
-                paymentRequestId: paymentRequestId,
-                additionalInfo: { billerId: '1234' }
-            }
+            responseMessage: 'Success'
         });
     } else {
-        res.json({
+        res.status(404).json({
             responseCode: '4042512',
             responseMessage: 'Bill not found',
         });
     }
+});
+
+// 4. Advice: POST /api/v1.0/transfer-va/advice
+app.post('/api/v1.0/transfer-va/advice', async (req, res) => {
+    const { paymentRequestId, customerNo } = req.body;
+    console.log(`[SNAP BI] Advice request for paymentRequestId: ${paymentRequestId}, customerNo: ${customerNo}`);
+
+    await db.read();
+    // Use paymentRequestId as primary key, customerNo as secondary validation
+    const va = db.data.virtual_accounts.find(v => v.paymentRequestId === paymentRequestId);
+
+    if (va) {
+        if (customerNo && va.customerNo !== customerNo) {
+            return res.status(400).json({
+                responseCode: '4002500',
+                responseMessage: 'Customer number mismatch'
+            });
+        }
+
+        res.json({
+            responseCode: '2002500',
+            responseMessage: 'Success'
+        });
+    } else {
+        res.status(404).json({
+            responseCode: '4042512',
+            responseMessage: 'Payment record not found'
+        });
+    }
+});
+
+// 5. Web Service Reconciliation: POST /api/bpi-bi-snap/reconciliation
+app.post('/api/bpi-bi-snap/reconciliation', async (req, res) => {
+    const { action, kodeBPI, data } = req.body;
+    console.log(`[SNAP BI] Reconciliation request. Action: ${action}, KodeBPI: ${kodeBPI}`);
+
+    // Mock response
+    res.json([
+        { rc: true, idRekon: 'RECON-' + Date.now() }
+    ]);
 });
 
 // Helper for UI/Debugging: List all billings
@@ -404,7 +480,7 @@ app.post('/simulate/payment', async (req, res) => {
         partnerServiceId: PARTNER_ID,
         paymentRequestId: payment_id,
         paidAmount: {
-            value: parseFloat(billing.trx_amount),
+            value: String(billing.trx_amount),
             currency: 'IDR'
         },
         trxDateTime: timestamp,
