@@ -58,10 +58,10 @@ class SmartBillingController(http.Controller):
                 token = self._generate_access_token()
                 response = {
                     'responseCode': '2000000',
-                    'responseMessage': 'Successful',
+                    'responseMessage': 'Auth Success',
                     'accessToken': token,
                     'tokenType': 'BearerToken',
-                    'expiresIn': '900'
+                    'expiresIn': 900
                 }
                 _logger.info(f"[BSI AUTH] Success")
                 return request.make_response(json.dumps(response), headers=[('Content-Type', 'application/json')])
@@ -115,7 +115,7 @@ class SmartBillingController(http.Controller):
             if result:
                 response = {
                     'responseCode': '2002400',
-                    'responseMessage': 'Successful',
+                    'responseMessage': 'Success',
                     'virtualAccountData': {
                         'partnerServiceId': x_partner_id.rjust(8),
                         'customerNo': customer_no,
@@ -177,16 +177,7 @@ class SmartBillingController(http.Controller):
             if result['success']:
                 response = {
                     'responseCode': '2002500',
-                    'responseMessage': 'Successful',
-                    'virtualAccountData': {
-                        'partnerServiceId': x_partner_id.rjust(8),
-                        'customerNo': customer_no,
-                        'virtualAccountNo': x_partner_id.rjust(8) + customer_no,
-                        'virtualAccountName': result.get('customer_name', ''),
-                        'paymentRequestId': payment_request_id,
-                        'paidAmount': paid_amount,
-                        'additionalInfo': result.get('additional_info', [])
-                    }
+                    'responseMessage': 'Success'
                 }
                 return request.make_response(json.dumps(response), headers=[('Content-Type', 'application/json')])
             else:
@@ -194,6 +185,65 @@ class SmartBillingController(http.Controller):
         except Exception as e:
             _logger.error(f"[BSI PAYMENT] Error: {e}")
             return request.make_response(json.dumps({'responseCode': '5002500', 'responseMessage': f'General Error: {str(e)}'}), status=500, headers=[('Content-Type', 'application/json')])
+
+    @http.route('/api/v1.0/transfer-va/advice', type='http', auth='public', methods=['POST'], csrf=False)
+    def bsi_advice(self):
+        """
+        BSI SNAP BI Advice endpoint.
+        Path: /api/v1.0/transfer-va/advice
+        Used to verify status of a previous payment.
+        """
+        try:
+            data = json.loads(request.httprequest.data.decode('utf-8'))
+            all_headers = dict(request.httprequest.headers)
+            _logger.info(f"[BSI ADVICE] Request: {json.dumps(data)}")
+
+            x_signature = all_headers.get('X-Signature', '')
+            x_timestamp = all_headers.get('X-Timestamp', '')
+            authorization = all_headers.get('Authorization', '')
+            access_token = authorization[7:] if authorization.startswith('Bearer ') else ''
+
+            if not self._verify_snap_signature('POST', '/api/v1.0/transfer-va/advice', data, access_token, x_timestamp, x_signature):
+                return request.make_response(json.dumps({'responseCode': '4012500', 'responseMessage': 'Invalid Signature'}), status=401, headers=[('Content-Type', 'application/json')])
+
+            payment_request_id = data.get('paymentRequestId', '')
+            customer_no = data.get('customerNo', '')
+
+            # Advice should return same success as Payment if record exists
+            transaction = request.env['smart.billing.transaction'].sudo().search([
+                ('provider_transaction_id', '=', payment_request_id),
+                ('provider', '=', 'bsi')
+            ], limit=1)
+
+            if transaction and transaction.state == 'settlement':
+                if customer_no and transaction.va_number and customer_no not in transaction.va_number:
+                    return request.make_response(json.dumps({'responseCode': '4002500', 'responseMessage': 'Customer number mismatch'}), status=400, headers=[('Content-Type', 'application/json')])
+
+                return request.make_response(json.dumps({'responseCode': '2002500', 'responseMessage': 'Success'}), headers=[('Content-Type', 'application/json')])
+            else:
+                return request.make_response(json.dumps({'responseCode': '4042512', 'responseMessage': 'Payment record not found'}), status=404, headers=[('Content-Type', 'application/json')])
+        except Exception as e:
+            _logger.error(f"[BSI ADVICE] Error: {e}")
+            return request.make_response(json.dumps({'responseCode': '5002500', 'responseMessage': f'General Error: {str(e)}'}), status=500, headers=[('Content-Type', 'application/json')])
+
+    @http.route('/api/bpi-bi-snap/reconciliation', type='http', auth='public', methods=['POST'], csrf=False)
+    def bsi_reconciliation(self):
+        """
+        BSI Web Service Reconciliation endpoint.
+        Path: /api/bpi-bi-snap/reconciliation
+        """
+        try:
+            payload = json.loads(request.httprequest.data.decode('utf-8'))
+            _logger.info(f"[BSI RECON] Action: {payload.get('action')}")
+
+            data_list = payload.get('data', [])
+            bsi_provider = request.env['smart.billing.provider.bsi'].sudo()
+            results = bsi_provider.process_reconciliation(data_list)
+
+            return request.make_response(json.dumps(results), headers=[('Content-Type', 'application/json')])
+        except Exception as e:
+            _logger.error(f"[BSI RECON] Error: {e}")
+            return request.make_response(json.dumps([{'rc': False, 'message': str(e)}]), status=500, headers=[('Content-Type', 'application/json')])
 
     # =========================================================================
     # BSI Helper Methods

@@ -458,12 +458,6 @@ class BSIProvider(models.AbstractModel):
     def update_billing(self, order_id, amount, customer_details, expiry_time=None):
         """
         Update existing billing via BSI P2H API.
-
-        Args:
-            order_id: Existing order/trx_id
-            amount: New amount
-            customer_details: Updated customer info
-            expiry_time: New expiry (optional)
         """
         config = self._validate_config()
 
@@ -499,6 +493,55 @@ class BSIProvider(models.AbstractModel):
             error_msg = response.get(
                 'message', 'Unknown error') if response else 'No response'
             raise UserError(f"BSI Update Billing Error: {error_msg}")
+
+    def process_reconciliation(self, data_list):
+        """
+        Process BSI reconciliation data (from POST /api/bpi-bi-snap/reconciliation).
+
+        Each item in data_list should contain transaction details.
+        """
+        _logger.info(f"[BSI] Processing reconciliation for {len(data_list)} items")
+        results = []
+
+        for item in data_list:
+            # Expected fields: id_rekon, kode_biller, total_pembayaran, nama, wkt_transaksi, status
+            rekon_id = item.get('id_rekon') or item.get('trxId')
+            amount = float(item.get('total_pembayaran', 0))
+            status = item.get('status', '').lower()
+
+            if not rekon_id:
+                continue
+
+            # Find matching transaction by provider_transaction_id or name
+            transaction = self.env['smart.billing.transaction'].sudo().search([
+                '|',
+                ('provider_transaction_id', '=', rekon_id),
+                ('name', '=', rekon_id)
+            ], limit=1)
+
+            if not transaction:
+                # If not found, it might be a missing record. Let's try to find by customer info or skip
+                _logger.warning(
+                    f"[BSI RECON] Transaction {rekon_id} not found in Odoo. Skipping.")
+                results.append({'rc': False, 'idRekon': rekon_id,
+                               'message': 'Transaction not found'})
+                continue
+
+            # Update status if needed
+            if status in ['success', 'settlement', 'paid'] and transaction.state != 'settlement':
+                _logger.info(
+                    f"[BSI RECON] Updating transaction {transaction.name} to settlement via reconciliation")
+                transaction.write({
+                    'state': 'settlement',
+                    'gross_amount': amount or transaction.gross_amount,
+                    'provider_status': status,
+                    'settlement_time': fields.Datetime.now()
+                })
+                transaction._on_payment_settled()
+
+            results.append({'rc': True, 'idRekon': rekon_id})
+
+        return results
 
     # =========================================================================
     # SNAP BI H2H Helper Methods (used by controller)
