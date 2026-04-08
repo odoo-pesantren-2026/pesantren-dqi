@@ -6,7 +6,7 @@
         to prevent deletion since it is still referenced by historical data.
     -->
     <data noupdate="1">
-        <record id="l10n_id.ppn_tag" model="account.account.tag">
+        <record id="l10n_id.ppn_tag" model="account.account.tag" forcecreate="1">
             <field name="name">PPN</field>
             <field name="applicability">taxes</field>
             <field name="country_id" ref="base.id" />
