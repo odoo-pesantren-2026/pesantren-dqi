@@ -5,8 +5,11 @@
         Odoo 18 no longer defines it, so we provide this definition 
         to prevent deletion since it is still referenced by historical data.
     -->
-    <record id="l10n_id.ppn_tag" model="account.account.tag">
-        <field name="name">PPN</field>
-        <field name="applicability">taxes</field>
-    </record>
+    <data noupdate="1">
+        <record id="l10n_id.ppn_tag" model="account.account.tag">
+            <field name="name">PPN</field>
+            <field name="applicability">taxes</field>
+            <field name="country_id" ref="base.id" />
+        </record>
+    </data>
 </odoo>
