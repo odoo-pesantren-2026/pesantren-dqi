@@ -149,9 +149,14 @@
 
                         <setting id="smart_billing_features_setting" string="Features"
                             help="Fitur otomatis">
-                            <field name="smart_billing_auto_reconcile" />
-                            <field name="smart_billing_auto_topup_saldo" />
-                            <field name="smart_billing_send_notification" />
+                            <group>
+                                <field name="smart_billing_auto_reconcile"
+                                    string="Auto Reconcile Invoice" />
+                                <field name="smart_billing_auto_topup_saldo"
+                                    string="Auto Top-up Saldo" />
+                                <field name="smart_billing_send_notification"
+                                    string="Send Payment Notification" />
+                            </group>
                         </setting>
 
                         <setting id="smart_billing_test_setting" string="Test Connection">

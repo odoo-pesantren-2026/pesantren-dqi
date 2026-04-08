@@ -17,11 +17,26 @@
                     <group string="Konfigurasi">
                         <group>
                             <field name="api_mode" widget="radio" />
-                        </group>
-                        <group>
                             <field name="mockup_url"
                                 invisible="api_mode != 'mockup'" />
                         </group>
+                        <group string="Kredensial (Override/Default)">
+                            <field name="override_credentials" widget="boolean_toggle" />
+                            <field name="bsi_client_id"
+                                placeholder="Biarkan kosong untuk default system"
+                                invisible="not override_credentials" />
+                            <field name="bsi_client_secret" password="1"
+                                placeholder="Biarkan kosong untuk default system"
+                                invisible="not override_credentials" />
+                            <field name="bsi_partner_id"
+                                placeholder="Biarkan kosong untuk default system"
+                                invisible="not override_credentials" />
+                        </group>
+                    </group>
+                    <group string="Keamanan"
+                        invisible="api_mode == 'mockup' or not override_credentials">
+                        <field name="bsi_private_key" widget="text"
+                            placeholder="-----BEGIN PRIVATE KEY-----..." />
                     </group>
 
                     <group string="Parameter Test">

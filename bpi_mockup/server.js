@@ -228,7 +228,9 @@ app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
     );
 
     if (va) {
-        if (va.status === 'paid') {
+        // Skip 'Already paid' check if simulation flag is present
+        const simulate = req.body.additionalInfo?.simulation === true;
+        if (va.status === 'paid' && !simulate) {
             return res.status(404).json({
                 responseCode: '4042414',
                 responseMessage: 'Already paid'
@@ -270,7 +272,9 @@ app.post('/api/v1.0/transfer-va/payment', async (req, res) => {
     const va = db.data.virtual_accounts.find(v => v.customerNo === customerNo);
 
     if (va) {
-        if (va.status === 'paid') {
+        // Skip 'Already paid' check if simulation flag is present
+        const simulate = req.body.additionalInfo?.simulation === true;
+        if (va.status === 'paid' && !simulate) {
             return res.status(404).json({
                 responseCode: '4042514',
                 responseMessage: 'Already paid'
@@ -285,11 +289,15 @@ app.post('/api/v1.0/transfer-va/payment', async (req, res) => {
             });
         }
 
-        // Update state
-        va.status = 'paid';
-        va.paymentRequestId = paymentRequestId;
-        va.paidAmount = paidAmount;
-        await db.write();
+        // Update state if not in simulation mode
+        if (!simulate) {
+            va.status = 'paid';
+            va.paymentRequestId = paymentRequestId;
+            va.paidAmount = paidAmount;
+            await db.write();
+        } else {
+            console.log(`[SNAP BI] SIMULATION MODE active for ${customerNo}. Skipping DB write.`);
+        }
 
         res.json({
             responseCode: '2002500',

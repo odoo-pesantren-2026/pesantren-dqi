@@ -24,6 +24,21 @@ const RECON_URL = `${BASE_URL}/api/bpi-bi-snap/reconciliation`;
 async function testCompliance() {
     console.log('--- Starting API Compliance Test ---');
 
+    // Reset DB state for tester before starting
+    try {
+        const dbData = JSON.parse(fs.readFileSync('db.json', 'utf8'));
+        const va = dbData.virtual_accounts.find(v => v.customerNo === '111222333444');
+        if (va) {
+            va.status = 'pending';
+            delete va.paymentRequestId;
+            delete va.paidAmount;
+            fs.writeFileSync('db.json', JSON.stringify(dbData, null, 2));
+            console.log('✅ Prepared clean state for customer 111222333444');
+        }
+    } catch (e) {
+        console.warn('⚠️ Could not reset DB state:', e.message);
+    }
+
     // 1. Test Auth
     console.log('\n[1] Testing AUTH...');
     const authRes = await fetch(AUTH_URL, {

@@ -22,14 +22,14 @@ Host-to-Host (H2H) digunakan untuk komunikasi real-time antara:
 
 Mendapatkan `accessToken` (OAuth 2.0)
 
-### Header
+### AUTH Header
 
 - `X-TIMESTAMP`
 - `X-CLIENT-KEY` (CLIENT_ID)
 - `X-SIGNATURE` (RSA SHA256)
 - `Content-Type: application/json`
 
-### Request
+### AUTH Request
 
 ```json
 {
@@ -37,7 +37,7 @@ Mendapatkan `accessToken` (OAuth 2.0)
 }
 ````
 
-### Response
+### AUTH Response
 
 ```json
 {
@@ -58,11 +58,11 @@ Mendapatkan `accessToken` (OAuth 2.0)
 
 ## Inquiry
 
-### Purpose
+### INQUIRY Purpose
 
 Mengambil informasi tagihan
 
-#### Header
+### INQUIRY Header
 
 - `Authorization: Bearer {accessToken}`
 - `X-SIGNATURE` (HMAC SHA512)
@@ -70,7 +70,7 @@ Mengambil informasi tagihan
 - `CHANNEL-ID`
 - `X-EXTERNAL-ID`
 
-#### Request
+#### INQUIRY Request
 
 ```json
 {
@@ -112,7 +112,7 @@ Mengambil informasi tagihan
 
 ## Payment
 
-### Purpose
+### PAYMENT Purpose
 
 Menandai tagihan sebagai **dibayar**
 
@@ -156,7 +156,7 @@ Menandai tagihan sebagai **dibayar**
 
 Validasi status pembayaran sebelumnya
 
-### Notes
+### ADVICE Notes
 
 - Dipanggil jika Payment gagal
 - Response harus sama dengan Payment
@@ -166,13 +166,13 @@ Validasi status pembayaran sebelumnya
 
 ## Billing Number Format
 
-```
+```txt
 [KODE_BPI (4 digit)] + [Payment Number (5–12 digit)]
 ```
 
 ### Virtual Account (Non-BSI)
 
-```
+```txt
 900 + KODE_BPI + Payment Number
 ```
 
@@ -198,13 +198,13 @@ Validasi status pembayaran sebelumnya
 
 ### File Format (CSV)
 
-```
+```txt
 rekon_451_[kode_biller]_[tanggal]_[jumlah]_rev[time].csv
 ```
 
 ### Field Example
 
-```
+```txt
 id_rekon;kode_biller;total_pembayaran;nama;wkt_transaksi;status
 ```
 
@@ -212,7 +212,7 @@ id_rekon;kode_biller;total_pembayaran;nama;wkt_transaksi;status
 
 ## Web Service Reconciliation
 
-### Request
+### WSR Request
 
 ```json
 {
@@ -223,7 +223,7 @@ id_rekon;kode_biller;total_pembayaran;nama;wkt_transaksi;status
 }
 ```
 
-### Response
+### WSR Response
 
 ```json
 [
@@ -247,7 +247,7 @@ id_rekon;kode_biller;total_pembayaran;nama;wkt_transaksi;status
 
 ## Summary Flow
 
-```
+```md
 AUTH → INQUIRY → PAYMENT → (ADVICE)
 ```
 
