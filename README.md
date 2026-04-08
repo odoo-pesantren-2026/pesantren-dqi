@@ -1,79 +1,102 @@
-# Aplikasi Manajemen Pesantren
+# Aplikasi Manajemen Pesantren (DQI Edition)
 
-Aplikasi **Manajemen Pesantren** dirancang untuk memenuhi kebutuhan administrasi pesantren modern. Dengan fokus pada efisiensi, transparansi, dan integrasi, aplikasi ini mencakup berbagai modul utama yang mendukung pengelolaan operasional pesantren secara menyeluruh.
+Aplikasi **Manajemen Pesantren** dirancang untuk memenuhi kebutuhan administrasi pesantren modern secara menyeluruh. Dengan fokus pada efisiensi, transparansi, dan integrasi antar unit (Akademik, Kesantrian, Keuangan, dan Orang Tua).
 
-## Fitur Utama
+## 🚀 Fitur Utama
 
-### 1. **Modul Sekolah**
+### 1. **Smart Billing & Payment Integration (BSI SNAP BI)**
 
-- Pengelolaan data siswa dan kelas.
-- Manajemen jadwal pelajaran.
-- Rekap nilai ujian dan rapor.
-- Integrasi kehadiran siswa.
+Integrasi sistem keuangan dengan perbankan menggunakan standar **SNAP BI v3.2**.
 
-### 2. **Modul Kesantrian**
+- **Virtual Account (VA)**: Generate VA otomatis untuk tagihan santri.
+- **Permanent VA**: Mendukung top-up saldo uang saku bebas nominal.
+- **BSI Smart Billing Compliance**: Mendukung flow `AUTH`, `INQUIRY`, `PAYMENT`, `ADVICE`, dan `WSR`.
+- **Auto-Reconcile**: Otomatis menandai invoice lunas saat pembayaran diterima dari bank.
+- **Real-time Notifications**: Notifikasi instan ke Dashboard Odoo dan Portal Orang Tua.
 
-- Pencatatan data santri, termasuk kamar dan asrama.
-- Pengelolaan pelanggaran dan reward santri.
-- Monitoring perkembangan hafalan Al-Qur'an.
-- Data kesehatan dan perkembangan santri.
+### 2. **Modul Kesantrian & Musyrif**
 
-### 3. **Modul Musyrif**
+- Pencatatan data santri, asrama, dan perizinan.
+- Monitoring perkembangan hafalan Al-Qur'an (Tahfidz) secara mendetail.
+- Laporan mingguan aktivitas santri oleh Musyrif.
 
-- Penugasan musyrif ke asrama.
-- Laporan mingguan aktivitas santri.
-- Catatan mentoring dan bimbingan.
+### 3. **Modul Akademik & Guru**
 
-### 4. **Modul Guru**
+- Manajemen kurikulum, jadwal pelajaran, dan absensi guru/siswa.
+- Pengelolaan rekap nilai dan raport digital.
 
-- Manajemen data guru dan jadwal mengajar.
-- Pengelolaan absensi guru.
-- Fitur rekap kinerja dan honorarium.
+### 4. **Portal Orang Tua**
 
-### 5. **Modul Guru Quran**
-
-- Monitoring perkembangan hafalan Quran.
-- Rekap data tahsin dan tajwid santri.
-- Laporan penilaian hafalan secara detail.
-
-### 6. **Modul Penerimaan Santri Baru (PSB)**
-
-- Pendaftaran online.
-- Verifikasi dokumen secara digital.
-- Seleksi dan pengumuman hasil penerimaan.
+- Akses informasi tagihan, rincian VA, dan riwayat transaksi.
+- Monitoring perkembangan pendidikan dan kedisiplinan anak secara real-time.
 
 ---
 
-## Cuplikan Aplikasi
+## 🛠️ Smart Billing Developer Tools
 
-### Tampilan Proses PSB
+Untuk pengembangan dan testing integrasi perbankan, disediakan alat pendukung:
 
-![Tampilan Modul Utama](https://i.ibb.co.com/cQkxXRm/Screenshot-from-2024-11-26-09-16-16.png)
+### **BPI Mockup API Server**
 
-### Tampilan Modul Kesantrian
+Berlokasi di folder `bpi_mockup`, server ini mensimulasikan core banking BSI untuk mendukung flow SNAP BI.
 
-![Tampilan Proses PSB](https://i.ibb.co.com/MCz04fD/Screenshot-from-2024-11-26-09-18-42.png)
+- **Standalone Mode**: Berjalan dengan Node.js dan LowDB.
+- **Simulation Mode**: Mendukung flag `simulation: true` untuk testing Inquiry/Payment berulang tanpa mengubah state database.
 
----
-
-## Teknologi yang Digunakan
-
-- **Backend:** [Odoo 18](https://www.odoo.com) sebagai platform ERP modular.
-- **Frontend:** OWL Framework untuk pengembangan antarmuka yang modern.
-- **Database:** PostgreSQL untuk pengelolaan data yang andal.
-- **Deployment:** Docker untuk mempermudah proses instalasi dan pengelolaan aplikasi.
-
-## Keunggulan
-
-- **Modular:** Setiap fitur dikemas dalam modul yang dapat diaktifkan sesuai kebutuhan.
-- **Integrasi:** Semua modul saling terhubung untuk memberikan gambaran data secara menyeluruh.
-- **User-Friendly:** Antarmuka yang intuitif dan mudah digunakan.
-- **Fleksibel:** Dapat disesuaikan dengan kebutuhan khusus setiap pesantren.
-
-## Panduan Instalasi
-
-### 1. Clone Repository
+**Cara Menjalankan Mockup:**
 
 ```bash
-git clone git@github.com:USERNAME/pesantren-dqi.git
-cd pesantren-dqi
+cd bpi_mockup
+npm install
+node server.js
+```
+
+*Akses Dashboard Simulator di `http://localhost:8001/dashboard`*
+
+### **API Compliance Verification**
+
+Gunakan script verifikasi untuk memastikan endpoint Odoo dan Mockup sudah sesuai dengan standar SNAP BI v3.2.
+
+```bash
+node bpi_mockup/verify_compliance.js
+```
+
+---
+
+## 💻 Teknologi yang Digunakan
+
+- **Core ERP:** [Odoo 18 (Community/Enterprise)](https://www.odoo.com)
+- **Programming:** Python 3.13, JavaScript (OWL & ES6+)
+- **Standards:** SNAP BI (Bank Syariah Indonesia v3.2)
+- **Database:** PostgreSQL
+- **Mockup Backend:** Express.js & LowDB (Node.js)
+
+---
+
+## ⚙️ Panduan Instalasi & Konfigurasi
+
+### 1. Persiapan Addons
+
+Pastikan semua filter path addons diarahkan ke repo ini:
+
+```bash
+git clone git@github.com:rasyaakbar-dev/pesantren-dqi.git
+```
+
+### 2. Konfigurasi Smart Billing
+
+Buka **Settings > Accounting > Smart Billing** di Odoo:
+
+- **Provider**: Pilih `BSI (Bank Syariah Indonesia)`.
+- **Mockup URL**: `http://localhost:8001` (Jika menggunakan simulator local).
+- **Credentials**: Masukkan Client ID, Secret, dan Partner ID yang sesuai dengan `bpi_mockup/config.json`.
+
+### 3. Test Connection
+
+Gunakan **Test API Wizard** di menu **Settings > Smart Billing > Test API** untuk memverifikasi koneksi Anda terhadap Mockup, Sandbox, atau Production.
+
+---
+
+## 📄 Lisensi & Kontribusi
+
+Modul ini dikembangkan khusus untuk ekosistem Pesantren DQI. Lisensi mengikuti standar LGPL-3.
