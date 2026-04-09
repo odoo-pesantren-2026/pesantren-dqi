@@ -333,7 +333,7 @@ class BSIProvider(models.AbstractModel):
             'type': 'createbilling',
             'client_id': config['client_id'],
             'trx_id': order_id,
-            'trx_amount': '1',  # Minimum amount for open billing
+            'trx_amount': '0',  # Open amount based on BSI-BPI-SPEC.md requirement
             'billing_type': 'o',  # o = open (free amount)
             'customer_name': partner.name or 'Santri',
             'customer_email': partner.email or '',
@@ -375,16 +375,83 @@ class BSIProvider(models.AbstractModel):
 
     def check_transaction_status(self, order_id):
         """
-        BSI uses H2H for status updates via webhook.
-        No direct status check API available.
+        Check transaction status via BPI P2H API (inquirybilling).
         """
-        return {
-            'success': True,
-            'status': 'pending',  # Status diupdate via webhook
-            'settlement_time': None,
-            'gross_amount': 0,
-            'raw_response': {'message': 'Status diupdate via webhook dari BSI'}
+        config = self._validate_config()
+
+        data = {
+            'type': 'inquirybilling',
+            'client_id': config['client_id'],
+            'trx_id': order_id
         }
+
+        try:
+            response = self._call_p2h_api(data)
+
+            if response and response.get('status') == '000':
+                resp_data = response.get('data', {})
+                va_status = resp_data.get('va_status', '')
+                
+                status_str = 'pending'
+                # Check for explicit payment amount within 000
+                payment_amount = float(resp_data.get('payment_amount', 0))
+                if payment_amount > 0:
+                    status_str = 'settlement'
+                elif str(va_status) == '2':
+                    # Inactive status could be manual cancel or expired
+                    dt_exp_str = resp_data.get('datetime_expired', '')
+                    if dt_exp_str:
+                        try:
+                            # BSI datetime format: %Y-%m-%dT%H:%M:%S+0700
+                            dt_exp = datetime.strptime(dt_exp_str[:19], '%Y-%m-%dT%H:%M:%S')
+                            if datetime.now() > dt_exp:
+                                status_str = 'expire'
+                            else:
+                                status_str = 'cancel'
+                        except Exception:
+                            status_str = 'cancel'
+                    else:
+                        status_str = 'cancel'
+
+                return {
+                    'success': True,
+                    'status': status_str,
+                    'va_status': va_status,
+                    'settlement_time': None,
+                    'gross_amount': float(resp_data.get('trx_amount', 0)),
+                    'raw_response': response
+                }
+            elif response and response.get('status') == '111':
+                # BSI code 111 = Already paid
+                return {
+                    'success': True,
+                    'status': 'settlement',
+                    'settlement_time': None,
+                    'raw_response': response
+                }
+            elif response and response.get('status') == '103':
+                # BSI code 103 = Billing expired
+                return {
+                    'success': True,
+                    'status': 'expire',
+                    'settlement_time': None,
+                    'raw_response': response
+                }
+            else:
+                error_msg = response.get('message', 'Unknown error') if response else 'No response'
+                return {
+                    'success': False,
+                    'status': 'pending', # fallback
+                    'message': error_msg,
+                    'raw_response': response or {}
+                }
+        except Exception as e:
+            return {
+                'success': False,
+                'status': 'error',
+                'message': str(e),
+                'raw_response': {}
+            }
 
     def verify_notification_signature(self, notification_data):
         """
@@ -400,12 +467,21 @@ class BSIProvider(models.AbstractModel):
         """
         Parse BSI webhook notification data.
 
-        BSI SNAP BI format:
-        - customerNo: Customer number (NIS or invoice reference)
-        - paidAmount: {value, currency}
-        - paymentRequestId: BSI payment reference
-        - trxDateTime: Transaction datetime
+        Handles both BSI SNAP BI format and P2H Callback format.
         """
+        # 1. Try to parse as P2H Callback format first (BSI-BPI-SPEC.md)
+        if 'trx_id' in notification_data and 'payment_amount' in notification_data:
+            return {
+                'order_id': notification_data.get('trx_id', ''),
+                'customer_no': notification_data.get('virtual_account', '')[-12:], # Approximate
+                'transaction_status': 'settlement',
+                'gross_amount': float(notification_data.get('payment_amount', 0)),
+                'va_number': notification_data.get('virtual_account', ''),
+                'settlement_time': fields.Datetime.now(), # P2H doesn't provide time
+                'transaction_id': notification_data.get('trx_id', ''),
+            }
+
+        # 2. Parse as SNAP BI format
         customer_no = notification_data.get('customerNo', '')
         paid_amount = notification_data.get('paidAmount', {})
 
@@ -556,8 +632,8 @@ class BSIProvider(models.AbstractModel):
         config = self.get_config()
         client_secret = config['client_secret']
 
-        # Hash of request body
-        body_str = json.dumps(body) if isinstance(body, dict) else str(body)
+        # Hash of request body (SNAP BI requires minified JSON string without spaces)
+        body_str = json.dumps(body, separators=(',', ':')) if isinstance(body, dict) else str(body)
         hash_body = hashlib.sha256(body_str.encode()).hexdigest().lower()
 
         # String to sign

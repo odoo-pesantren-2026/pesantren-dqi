@@ -30,7 +30,7 @@ const DB_NAME = process.env.DB_NAME || config.DB_NAME;
 const PARTNER_ID = process.env.PARTNER_ID || config.PARTNER_ID;
 
 // Initialize lowdb
-const defaultData = { billings: [] };
+const defaultData = { billings: [], virtual_accounts: [] };
 const db = await JSONFilePreset('db.json', defaultData);
 
 app.use(bodyParser.json());
@@ -156,7 +156,7 @@ app.post('/ext/bnis/', async (req, res) => {
         // Check if trx_id already exists
         const existing = billings.find(b => b.trx_id === trx_id);
         if (existing) {
-            responseData = { status: '999', message: 'Transaction ID already exists' };
+            responseData = { status: '105', message: 'Transaction ID already exists' };
         } else {
             const newBilling = {
                 trx_id,
@@ -175,7 +175,7 @@ app.post('/ext/bnis/', async (req, res) => {
     } else if (type === 'updatebilling') {
         const index = billings.findIndex(b => b.trx_id === trx_id);
         if (index === -1) {
-            responseData = { status: '999', message: 'Transaction ID not found' };
+            responseData = { status: '101', message: 'Billing not found' };
         } else {
             billings[index] = { ...billings[index], trx_amount, customer_name, datetime_expired, description, updated_at: new Date().toISOString() };
             await db.write();
@@ -184,11 +184,48 @@ app.post('/ext/bnis/', async (req, res) => {
     } else if (type === 'deletebilling') {
         const index = billings.findIndex(b => b.trx_id === trx_id);
         if (index === -1) {
-            responseData = { status: '999', message: 'Transaction ID not found' };
+            responseData = { status: '101', message: 'Billing not found' };
+        } else if (billings[index].status === 'paid' || billings[index].status === 'settlement') {
+            responseData = { status: '401', message: 'Delete denied (already paid)' };
         } else {
             billings.splice(index, 1);
             await db.write();
             responseData = { status: '000', message: 'Billing deleted', trx_id };
+        }
+    } else if (type === 'inquirybilling') {
+        const billing = billings.find(b => b.trx_id === trx_id);
+        if (!billing) {
+            responseData = { status: '101', message: 'Billing not found' };
+        } else {
+            const now = Date.now();
+            const isExpired = billing.datetime_expired && now > new Date(billing.datetime_expired).getTime();
+            
+            if (billing.status === 'pending' && isExpired) {
+                responseData = { status: '103', message: 'Billing expired' };
+            } else {
+                const isPaid = billing.status === 'paid' || billing.status === 'settlement';
+                const va_status = isPaid || isExpired ? '2' : '1';
+                const responseStatus = isPaid ? '111' : '000';
+                
+                let dataPayload = {
+                    trx_id: billing.trx_id,
+                    trx_amount: billing.trx_amount,
+                    virtual_account: billing.virtual_account,
+                    customer_name: billing.customer_name,
+                    va_status: va_status,
+                    datetime_expired: billing.datetime_expired
+                };
+                
+                if (isPaid) {
+                    dataPayload.payment_amount = billing.payment_amount || billing.trx_amount;
+                    dataPayload.datetime_payment = billing.paid_at || new Date().toISOString();
+                }
+
+                responseData = { 
+                    status: responseStatus, 
+                    data: dataPayload
+                };
+            }
         }
     } else {
         responseData = { status: '999', message: 'Unknown billing type' };
@@ -228,12 +265,21 @@ app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
     );
 
     if (va) {
-        // Skip 'Already paid' check if simulation flag is present
+        // Expiration check
+        const isExpired = va.datetime_expired && Date.now() > new Date(va.datetime_expired).getTime();
         const simulate = req.body.additionalInfo?.simulation === true;
+        
         if (va.status === 'paid' && !simulate) {
             return res.status(404).json({
                 responseCode: '4042414',
                 responseMessage: 'Already paid'
+            });
+        }
+        
+        if (isExpired && va.status !== 'paid' && !simulate) {
+            return res.status(404).json({
+                responseCode: '4042420',
+                responseMessage: 'Expired'
             });
         }
 
@@ -345,10 +391,15 @@ app.post('/api/bpi-bi-snap/reconciliation', async (req, res) => {
     const { action, kodeBPI, data } = req.body;
     console.log(`[SNAP BI] Reconciliation request. Action: ${action}, KodeBPI: ${kodeBPI}`);
 
-    // Mock response
-    res.json([
-        { rc: true, idRekon: 'RECON-' + Date.now() }
-    ]);
+    // Mock response matching input data array if provided
+    const response = (Array.isArray(data) && data.length > 0) 
+        ? data.map(item => ({
+            rc: true,
+            idRekon: item.id_rekon || item.trxId || item.idRekon || 'RECON-' + Date.now()
+        }))
+        : [{ rc: true, idRekon: 'RECON-' + Date.now() }];
+
+    res.json(response);
 });
 
 // Helper for UI/Debugging: List all billings
@@ -475,6 +526,7 @@ app.post('/simulate/payment', async (req, res) => {
     // Update internal state
     billing.status = 'settlement';
     billing.paid_at = new Date().toISOString();
+    billing.payment_amount = billing.trx_amount;
     await db.write();
 
     // Prepare notification to Odoo (SNAP BI Standard)

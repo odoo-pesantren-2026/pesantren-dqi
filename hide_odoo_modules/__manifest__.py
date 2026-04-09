@@ -7,6 +7,7 @@
     'data': [
         'views/hide_module_menu.xml',
     ],
+    'license': 'LGPL-3',
     'installable': True,
     'application': False,
     'auto_install': False,
