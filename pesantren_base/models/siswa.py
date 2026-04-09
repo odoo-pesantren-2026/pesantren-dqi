@@ -420,7 +420,7 @@ class siswa(models.Model):
     raport_4sd_2 = fields.Float(string='Raport 4 SD Smt 2')
     raport_5sd_1 = fields.Float(string='Raport 5 SD Smt 1')
     raport_5sd_2 = fields.Float(string='Raport 5 SD Smt 2')
-    raport_6sd_1 = fields.Float(string='Raport 4 SD Smt 1')
+    raport_6sd_1 = fields.Float(string='Raport 6 SD Smt 1')
     baca_quran = fields.Selection(string="Baca Qur'an", selection=[(
         'belumbisa', 'Belum Bisa'), ('kuranglancar', 'Kurang Lancar'), ('lancar', 'Lancar'), ('tartil', 'Tartil')])
 
