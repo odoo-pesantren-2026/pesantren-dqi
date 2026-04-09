@@ -394,15 +394,20 @@ class SmartBillingController(http.Controller):
         - Smart billing transaction customer_no
         """
         _logger.info(f"[BSI] Finding tagihan for customer_no: {customer_no}")
+        
+        # Get BSI Client ID to reconstruct exact VA Number
+        bsi_provider = request.env['smart.billing.provider.bsi'].sudo()
+        config = bsi_provider.get_config()
+        client_id = config.get('client_id', partner_id)
 
         # First, try to find by smart billing transaction (most specific)
         # Search by name (contains customer_no in format) or va_number
         # Gunakan '=' untuk pencocokan persis agar tidak salah menemukan transaksi lain
-        # yang mengandung angka yang sama (misal '123' tidak sengaja menemukan '12345')
         transaction = request.env['smart.billing.transaction'].sudo().search([
-            '|',
+            '|', '|',
             ('name', '=', customer_no),
             ('va_number', '=', customer_no),
+            ('va_number', '=', f"{client_id}{customer_no}"),
         ], limit=1)
 
         if transaction:
@@ -414,6 +419,7 @@ class SmartBillingController(http.Controller):
                 'transaction_id': transaction.id,
                 'partner_id': transaction.partner_id.id,
                 'invoice_id': transaction.move_id.id if transaction.move_id else None,
+                'client_id': client_id,
                 'additional_info': [
                     {'label': 'ORDER', 'value': transaction.name},
                 ]
@@ -518,6 +524,7 @@ class SmartBillingController(http.Controller):
                 is_topup = tagihan.get(
                     'type') == 'topup' or tagihan.get('force_new_topup')
 
+                client_id = tagihan.get('client_id', partner_id)
                 # Create new transaction for this payment
                 # NOTE: For va_topup, set to settlement immediately
                 # For va_tagihan, keep pending - let _on_payment_settled() decide based on full/partial
@@ -530,7 +537,7 @@ class SmartBillingController(http.Controller):
                     'state': initial_state,
                     'partner_id': tagihan['partner_id'],
                     'move_id': tagihan.get('invoice_id'),
-                    'va_number': partner_id.rjust(8) + customer_no,
+                    'va_number': f"{client_id}{customer_no}",
                     'va_bank': 'BSI',
                     'gross_amount': amount,
                     'transaction_time': fields.Datetime.now(),
