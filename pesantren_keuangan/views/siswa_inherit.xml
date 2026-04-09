@@ -10,7 +10,7 @@
                 <xpath expr="//page[@name='info_siswa']" position="inside">
                     <group invisible="status_akun != 'aktif'" string="Dompet Santri">
                         <group>
-                            <field name="va_saku" string="Virtual Account" />
+                            <field name="va_saku" string="Virtual Account" readonly="1"/>
                             <field name="saldo_uang_saku" string="Saldo Santri" readonly="1"
                                 widget="integer" />
                             <field name="limit" string="Periode Limit" readonly="1" />

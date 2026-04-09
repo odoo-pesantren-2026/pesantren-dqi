@@ -106,15 +106,6 @@ class Santri(models.Model):
     def _compute_count_prestasi(self):
         for siswa in self:
             siswa.prestasi_siswa_count = self.env['cdn.prestasi_siswa'].search_count([('siswa_id', '=', siswa.id)])
-    # def _compute_count_tahfidz_quran(self):
-    #     for siswa in self:
-    #         siswa.tahfidz_quran_count = self.env['cdn.tahfidz_quran'].search_count([('siswa_id', '=', siswa.id)])
-
-    # def _compute_count_penilaian_quran(self):
-    #     for siswa in self:
-    #         siswa.penilaian_quran_count = self.env['cdn.penilaian_quran'].search_count([
-    #             ('siswa_id', '=', siswa.id)
-    #         ])
     def _compute_count_penilaian_quran(self):
         for siswa in self:
             # Hitung berdasarkan penilaian_quran_line yang statusnya done
@@ -191,27 +182,6 @@ class Santri(models.Model):
             if rec.halaqoh_id and rec.halaqoh_id not in rec.halaqoh_ids:
                 rec.halaqoh_ids = [(4, rec.halaqoh_id.id)]
         return res
-    # actions smart button
-    # def action_saldo_tagihan(self):
-    #     self.ensure_one()
-    #     return {
-    #         'type': 'ir.actions.act_window',
-    #         'name': 'Tagihan Santri',
-    #         'res_model': 'account.move',
-    #         'view_mode': 'list,form',
-    #         'target': 'current',
-    #         'context': {
-    #             'default_siswa_id': self.id,
-    #             'default_partner_id': self.partner_id.id,
-    #             'default_move_type': 'out_invoice',
-    #             'search_default_filter_by_blm_lunas': 1,
-    #         },
-    #         'domain': [
-    #             ('partner_id', '=', self.partner_id.id),
-    #             ('move_type', '=', 'out_invoice'),
-    #         ],
-    #     }
-
 
     def action_saldo_tagihan(self):
             self.ensure_one()
@@ -242,83 +212,6 @@ class Santri(models.Model):
                 'target': 'current',
             }
 
-
-
-    # def action_saldo_tagihan(self):
-
-    #     self.ensure_one()
-
-    #     base_action = self.env.ref('pesantren_keuangan.pesantren_tagihan_keuangan_action').sudo().read()[0]
-
-    #     return {
-    #         'name': f'Tagihan {self.partner_id.name}',
-    #         'type': 'ir.actions.act_window',
-    #         'res_model': 'account.move',
-    #         'view_mode': 'list,form',
-    #         'views': base_action.get('views', []),  # Menggunakan views dari action custom
-    #         'view_id': base_action.get('view_id', False),  # View ID utama
-    #         'domain': [
-    #             ('partner_id', '=', self.partner_id.id), 
-    #             ('move_type', '=', 'out_invoice')
-    #         ],
-    #         'context': {
-    #             # 'default_santri_id': self.id,
-    #             'search_default_filter_by_blm_lunas': 1,
-    #         },
-    #     }
-
-        # return {
-        #     'name': 'Tagihan Santri',
-        #     'type': 'ir.actions.act_window',
-        #     'res_model': 'account.move',
-        #     'view_mode': 'list,form',
-        #     'domain': [('partner_id', '=', self.partner_id.id), ('move_type', '=', 'out_invoice')],
-        #     'context': {
-        #         'default_santri_id': self.id,
-        #         'search_default_filter_by_blm_lunas': 1,
-        #     },
-        # }
-        # self.ensure_one()
-        # action = self.env.ref('pesantren_keuangan.pesantren_tagihan_keuangan_action').sudo().read()[0]
-        # action['domain'] = [
-        #     ('partner_id', '=', self.partner_id.id),
-        #     ('move_type', '=', 'out_invoice'),
-        # ]
-        # action['context'] = {
-        #     'default_siswa_id': self.id,
-        #     'default_partner_id': self.partner_id.id,
-        #     'default_move_type': 'out_invoice',
-        #     'search_default_filter_by_blm_lunas': 1,
-        #     'use_search_default_filter_by_blm_lunas': True,
-        # }
-        # return action
-
-
-    # def action_saldo_tagihan(self):
-    #     self.ensure_one()
-    #     action = self.env.ref('pesantren_keuangan.pesantren_tagihan_keuangan_action').read()[0]
-        
-    #     # Use permanent domain filters instead of context-based filters
-    #     action['domain'] = [
-    #         ('partner_id', '=', self.partner_id.id),
-    #         ('move_type', '=', 'out_invoice'),
-    #         # Add this line to make the "Belum Lunas" filter permanent in the domain
-    #         ('payment_state', 'in', ['not_paid', 'partial'])
-    #         ('state', 'in', ['posted', 'kerugian']),
-    #     ]
-        
-    #     action['context'] = {
-    #         'default_siswa_id': self.id,
-    #         'default_partner_id': self.partner_id.id,
-    #         'default_move_type': 'out_invoice',
-    #         # Keep this for initial filtering, but now we have a permanent domain filter too
-    #         'search_default_filter_by_blm_lunas': 1,
-    #     }
-        
-    #     return action
-
-
-
     def action_kesehatan(self):
         return {
             'name': 'Kesehatan',
@@ -345,28 +238,6 @@ class Santri(models.Model):
             },
             'domain': [('siswa_id', '=', self.id)]
         }
-
-    # def action_open_custom_wizard(self):
-    #     return {
-    #         'type': 'ir.actions.client',
-    #         'tag': 'custom_pin_popup',
-    #         'name': 'Change PIN',
-    #         'params': {
-    #             'record_id': self.id,
-    #             'model': self._name,
-    #         }
-    #     }
-
-    # def action_open_custom_wizard(self):
-    #     return {
-    #         'type': 'ir.actions.client',
-    #         'tag': 'custom_pin_popup',
-    #         'name': 'Change PIN',
-    #         'params': {
-    #             'model': 'res.partner.change.pin',
-    #             'partner_id': self.partner_id.id,
-    #         }
-    #     }
 
     def action_open_custom_wizard(self):
         if not hasattr(self, 'partner_id') or not self.partner_id:
@@ -414,32 +285,7 @@ class Santri(models.Model):
             },
             'domain': [('siswa_id', '=', self.id)]
         }
-    # def action_tahfidz_quran(self):
-    #     return {
-    #         'name': 'Tahfidz Quran',
-    #         'view_type': 'form',
-    #         'view_mode': 'list,form',
-    #         'res_model': 'cdn.tahfidz_quran',
-    #         'type': 'ir.actions.act_window',
-    #         'target': 'current',
-    #         'context': {
-    #             'default_siswa_id': self.id,
-    #         },
-    #         'domain': [('siswa_id', '=', self.id)]
-    #     }
-    # def action_tahfidz_quran(self):
-    #     return {
-    #         'name': 'Tahfidz Quran',
-    #         'view_type': 'form',
-    #         'view_mode': 'list,form',
-    #         'res_model': 'cdn.penilaian_quran',
-    #         'type': 'ir.actions.act_window',
-    #         'target': 'current',
-    #         'context': {
-    #             'default_siswa_id': self.id,
-    #         },
-    #         'domain': [('siswa_id', '=', self.id)]
-    #     }
+
     def action_tahfidz_quran(self):
         self.ensure_one()
         
@@ -468,17 +314,6 @@ class Santri(models.Model):
             },
         }
 
-    # def action_saldo_tagihan(self):
-    #     return {
-    #         'name': 'Saldo Tagihan',
-    #         'view_mode': 'list,form',
-    #         'res_model': 'account.move',
-    #         'type': 'ir.actions.act_window',
-    #         'target': 'current',
-    #         'context': {'default_partner_id': self.partner_id.id, 'default_move_type': 'out_invoice'},
-    #         'domain': [('partner_id', '=', self.partner_id.id),('move_type', '=', 'out_invoice')]
-    #     }
-
     def action_uang_saku(self):
         return {
             'name': 'Uang Saku',
@@ -489,56 +324,7 @@ class Santri(models.Model):
             'context': {'default_siswa_id': self.partner_id.id},
             'domain': [('siswa_id', '=', self.partner_id.id)]
         }
-        
-    # @api.model
-    # def _search(self, domain, offset=0, limit=None, order=None):
-    #     domain = domain or []
-    #     user = self.env.user
-    #     context = self.env.context
 
-    #     # 1. Superuser & Manager → Full
-    #     if self.env.uid == SUPERUSER_ID or user.has_group('pesantren_kesantrian.group_kesantrian_manager'):
-    #         return super()._search(domain, offset, limit, order)
-
-    #     is_guru_quran   = user.has_group('pesantren_guruquran.group_guru_quran_staff')
-    #     is_guru         = user.has_group('pesantren_guru.group_guru_staff')
-    #     is_musyrif      = user.has_group('pesantren_musyrif.group_musyrif_staff')
-
-    #     # 2. DETEKSI CONTEXT - Perbaikan di sini
-    #     from_guru_quran = bool(
-    #         context.get('from_guru_quran') or
-    #         context.get('active_model') in ['cdn.absen_halaqoh', 'cdn.penilaian_quran', 'cdn.halaqoh', 'cdn.penilaian_quran_line', 'cdn.absen_halaqoh_line']
-    #     )
-    #     from_musyrif = bool(
-    #         context.get('from_musyrif') or
-    #         context.get('active_model') in ['cdn.absen_musyrif', 'cdn.kegiatan_musyrif']
-    #     )
-
-    #     # 4. MUSYRIF + CONTEXT → FILTER KAMAR
-    #     if is_musyrif and from_musyrif:
-    #         domain += [
-    #             '|',
-    #             ('kamar_id.musyrif_id.user_id', '=', user.id),
-    #             ('kamar_id.pengganti_ids.user_id', '=', user.id)
-    #         ]
-    #         return super()._search(domain, offset, limit, order)
-        
-    #     # 3. GURU QURAN dan Akademik → FULL ACCESS (tidak perlu cek context lagi)
-    #     if is_guru_quran or is_guru:
-    #         # Guru Quran selalu punya akses penuh ke siswa
-    #         return super()._search(domain, offset, limit, order)
-
-    #     # 5. MUSYRIF ONLY → FILTER
-    #     if is_musyrif:
-    #         domain += [
-    #             '|',
-    #             ('kamar_id.musyrif_id.user_id', '=', user.id),
-    #             ('kamar_id.pengganti_ids.user_id', '=', user.id)
-    #         ]
-    #         return super()._search(domain, offset, limit, order)
-
-    #     # 6. DEFAULT: FULL
-    #     return super()._search(domain, offset, limit, order)
     @api.model
     def _search(self, domain, offset=0, limit=None, order=None):
         domain = domain or []
