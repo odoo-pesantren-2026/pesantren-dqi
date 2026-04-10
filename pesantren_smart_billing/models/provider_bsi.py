@@ -182,9 +182,9 @@ class BSIProvider(models.AbstractModel):
         return config
 
     def _format_datetime_expired(self, hours=24):
-        """Format datetime for BSI API"""
+        """Format datetime for BSI API (ISO8601 with +07:00 timezone)"""
         expired = datetime.now() + timedelta(hours=hours)
-        return expired.strftime('%Y-%m-%dT%H:%M:%S+0700')
+        return expired.strftime('%Y-%m-%dT%H:%M:%S+07:00')
 
     def _generate_virtual_account(self, customer_no: str) -> str:
         """Generate full VA number: client_id + customer_no"""
@@ -268,6 +268,11 @@ class BSIProvider(models.AbstractModel):
                 int(hashlib.md5(order_id.encode()).hexdigest(), 16))[-12:]
         else:
             customer_no = digits_only[-12:]
+        # Ensure customer_no is 5-12 digits (BSI VA format requirement)
+        if len(customer_no) < 5:
+            customer_no = customer_no.zfill(5)
+        elif len(customer_no) > 12:
+            customer_no = customer_no[-12:]
         virtual_account = self._generate_virtual_account(customer_no)
 
         expiry_time = self._format_datetime_expired(config['expiry_duration'])
@@ -327,7 +332,7 @@ class BSIProvider(models.AbstractModel):
 
         # Permanent VA expires in 1 year
         expiry_time = (datetime.now() + timedelta(days=365)
-                       ).strftime('%Y-%m-%dT%H:%M:%S+0700')
+                       ).strftime('%Y-%m-%dT%H:%M:%S+07:00')
 
         data = {
             'type': 'createbilling',
@@ -402,7 +407,7 @@ class BSIProvider(models.AbstractModel):
                     dt_exp_str = resp_data.get('datetime_expired', '')
                     if dt_exp_str:
                         try:
-                            # BSI datetime format: %Y-%m-%dT%H:%M:%S+0700
+                            # BSI datetime format: %Y-%m-%dT%H:%M:%S+07:00 (ISO8601)
                             dt_exp = datetime.strptime(dt_exp_str[:19], '%Y-%m-%dT%H:%M:%S')
                             if datetime.now() > dt_exp:
                                 status_str = 'expire'

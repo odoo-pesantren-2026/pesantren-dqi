@@ -237,11 +237,12 @@ app.post('/ext/bnis/', async (req, res) => {
 });
 
 // =========================================================================
-// SNAP BI Standard Endpoints (used by Test Wizard)
+// SNAP BI Spec-Compliant Endpoints (BSI-H2H-API-SPEC.md)
+// Both /api/bpi-bi-snap/* (spec) and /api/v1.0/* (legacy) are served
 // =========================================================================
 
-// 1. Auth: POST /api/v1.0/access-token/b2b
-app.post('/api/v1.0/access-token/b2b', (req, res) => {
+// 1. Auth: POST /api/bpi-bi-snap/auth  &  /api/v1.0/access-token/b2b
+app.post(['/api/bpi-bi-snap/auth', '/api/v1.0/access-token/b2b'], (req, res) => {
     console.log('[SNAP BI] Auth request headers:', req.headers);
     res.json({
         responseCode: '2000000',
@@ -252,8 +253,8 @@ app.post('/api/v1.0/access-token/b2b', (req, res) => {
     });
 });
 
-// 2. Inquiry: POST /api/v1.0/transfer-va/inquiry
-app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
+// 2. Inquiry: POST /api/bpi-bi-snap/inquiry  &  /api/v1.0/transfer-va/inquiry
+app.post(['/api/bpi-bi-snap/inquiry', '/api/v1.0/transfer-va/inquiry'], async (req, res) => {
     const { customerNo, virtualAccountNo, partnerServiceId } = req.body;
     console.log(`[SNAP BI] Inquiry request for: ${customerNo || virtualAccountNo} | Headers:`, req.headers);
 
@@ -309,8 +310,8 @@ app.post('/api/v1.0/transfer-va/inquiry', async (req, res) => {
     }
 });
 
-// 3. Payment: POST /api/v1.0/transfer-va/payment
-app.post('/api/v1.0/transfer-va/payment', async (req, res) => {
+// 3. Payment: POST /api/bpi-bi-snap/payment  &  /api/v1.0/transfer-va/payment
+app.post(['/api/bpi-bi-snap/payment', '/api/v1.0/transfer-va/payment'], async (req, res) => {
     const { customerNo, paymentRequestId, paidAmount } = req.body;
     console.log(`[SNAP BI] Payment notification for: ${customerNo}, amount: ${paidAmount?.value} | Headers:`, req.headers);
 
@@ -357,8 +358,8 @@ app.post('/api/v1.0/transfer-va/payment', async (req, res) => {
     }
 });
 
-// 4. Advice: POST /api/v1.0/transfer-va/advice
-app.post('/api/v1.0/transfer-va/advice', async (req, res) => {
+// 4. Advice: POST /api/bpi-bi-snap/advice  &  /api/v1.0/transfer-va/advice
+app.post(['/api/bpi-bi-snap/advice', '/api/v1.0/transfer-va/advice'], async (req, res) => {
     const { paymentRequestId, customerNo } = req.body;
     console.log(`[SNAP BI] Advice request for paymentRequestId: ${paymentRequestId}, customerNo: ${customerNo}`);
 
@@ -427,6 +428,7 @@ app.get('/dashboard', async (req, res) => {
             h1 { color: #008080; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
             .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
             .badge-pending { background: #fff3cd; color: #856404; }
+            .badge-paid { background: #d4edda; color: #155724; }
             .badge-settlement { background: #d4edda; color: #155724; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
@@ -530,8 +532,8 @@ app.post('/simulate/payment', async (req, res) => {
     await db.write();
 
     // Prepare notification to Odoo (SNAP BI Standard)
-    // customerNo is usually the suffix of the VA number
-    const customerNo = billing.virtual_account.replace(PARTNER_ID, '').padStart(3, '0');
+    // customerNo is the suffix of the VA number after the PARTNER_ID prefix
+    const customerNo = billing.virtual_account.slice(PARTNER_ID.length);
     const payment_id = 'SIM-PAY-' + Date.now();
     const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, '+07:00');
 
@@ -550,13 +552,14 @@ app.post('/simulate/payment', async (req, res) => {
         }
     };
 
-    console.log(`[BSI Mockup] Pushing notification to Odoo: ${ODOO_URL}/api/v1.0/transfer-va/payment`);
+    console.log(`[BSI Mockup] Pushing notification to Odoo: ${ODOO_URL}/api/bpi-bi-snap/payment`);
 
     try {
-        const response = await fetch(`${ODOO_URL}/api/v1.0/transfer-va/payment?db=${DB_NAME}`, {
+        const response = await fetch(`${ODOO_URL}/api/bpi-bi-snap/payment?db=${DB_NAME}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer mock-access-token-simulator',
                 'X-Partner-Id': PARTNER_ID,
                 'X-External-Id': payment_id,
                 'X-Timestamp': timestamp,

@@ -37,7 +37,7 @@ class SmartBillingController(http.Controller):
     # BSI SNAP BI H2H Endpoints
     # =========================================================================
 
-    @http.route('/api/v1.0/access-token/b2b', type='http', auth='public', methods=['POST'], csrf=False)
+    @http.route(['/api/bpi-bi-snap/auth', '/api/v1.0/access-token/b2b'], type='http', auth='public', methods=['POST'], csrf=False)
     def bsi_auth(self):
         """
         BSI SNAP BI Authentication endpoint.
@@ -74,15 +74,15 @@ class SmartBillingController(http.Controller):
         except Exception as e:
             _logger.error(f"[BSI AUTH] Error: {e}")
             return request.make_response(json.dumps({
-                'responseCode': '5002400',
+                'responseCode': '5000000',
                 'responseMessage': f'General Error: {str(e)}'
             }), status=500, headers=[('Content-Type', 'application/json')])
 
-    @http.route('/api/v1.0/transfer-va/inquiry', type='http', auth='public', methods=['POST'], csrf=False)
+    @http.route(['/api/bpi-bi-snap/inquiry', '/api/v1.0/transfer-va/inquiry'], type='http', auth='public', methods=['POST'], csrf=False)
     def bsi_inquiry(self):
         """
         BSI SNAP BI Inquiry endpoint.
-        Path: /api/v1.0/transfer-va/inquiry
+        Path: /api/bpi-bi-snap/inquiry
         """
         try:
             data = json.loads(request.httprequest.data.decode('utf-8'))
@@ -102,7 +102,7 @@ class SmartBillingController(http.Controller):
                 'Bearer ') else ''
 
             # Verify signature & token
-            if not self._verify_snap_signature('POST', '/api/v1.0/transfer-va/inquiry', data, access_token, x_timestamp, x_signature):
+            if not self._verify_snap_signature('POST', '/api/bpi-bi-snap/inquiry', data, access_token, x_timestamp, x_signature):
                 return request.make_response(json.dumps({'responseCode': '4012400', 'responseMessage': 'Invalid Signature'}), status=401, headers=[('Content-Type', 'application/json')])
 
             if not self._is_token_valid(access_token):
@@ -113,6 +113,12 @@ class SmartBillingController(http.Controller):
                 customer_no, x_partner_id)
 
             if result:
+                state = result.get('state')
+                if state in ['settlement', 'paid']:
+                    return request.make_response(json.dumps({'responseCode': '4042414', 'responseMessage': 'Already paid'}), status=404, headers=[('Content-Type', 'application/json')])
+                elif state in ['expired', 'cancelled']:
+                    return request.make_response(json.dumps({'responseCode': '4042420', 'responseMessage': 'Expired'}), status=404, headers=[('Content-Type', 'application/json')])
+
                 response = {
                     'responseCode': '2002400',
                     'responseMessage': 'Success',
@@ -133,11 +139,11 @@ class SmartBillingController(http.Controller):
             _logger.error(f"[BSI INQUIRY] Error: {e}")
             return request.make_response(json.dumps({'responseCode': '5002400', 'responseMessage': f'General Error: {str(e)}'}), status=500, headers=[('Content-Type', 'application/json')])
 
-    @http.route('/api/v1.0/transfer-va/payment', type='http', auth='public', methods=['POST'], csrf=False)
+    @http.route(['/api/bpi-bi-snap/payment', '/api/v1.0/transfer-va/payment'], type='http', auth='public', methods=['POST'], csrf=False)
     def bsi_payment(self):
         """
         BSI SNAP BI Payment notification endpoint.
-        Path: /api/v1.0/transfer-va/payment
+        Path: /api/bpi-bi-snap/payment
         """
         try:
             data = json.loads(request.httprequest.data.decode('utf-8'))
@@ -157,7 +163,7 @@ class SmartBillingController(http.Controller):
                 'Bearer ') else ''
 
             # Verify signature & token
-            if not self._verify_snap_signature('POST', '/api/v1.0/transfer-va/payment', data, access_token, x_timestamp, x_signature):
+            if not self._verify_snap_signature('POST', '/api/bpi-bi-snap/payment', data, access_token, x_timestamp, x_signature):
                 return request.make_response(json.dumps({'responseCode': '4012500', 'responseMessage': 'Invalid Signature'}), status=401, headers=[('Content-Type', 'application/json')])
 
             if not self._is_token_valid(access_token):
@@ -181,16 +187,18 @@ class SmartBillingController(http.Controller):
                 }
                 return request.make_response(json.dumps(response), headers=[('Content-Type', 'application/json')])
             else:
-                return request.make_response(json.dumps({'responseCode': '5002500', 'responseMessage': result.get('message', 'Payment processing failed')}), status=500, headers=[('Content-Type', 'application/json')])
+                error_code = result.get('errorCode', '5002500')
+                status_code = 404 if error_code.startswith('404') else 500
+                return request.make_response(json.dumps({'responseCode': error_code, 'responseMessage': result.get('message', 'Payment processing failed')}), status=status_code, headers=[('Content-Type', 'application/json')])
         except Exception as e:
             _logger.error(f"[BSI PAYMENT] Error: {e}")
             return request.make_response(json.dumps({'responseCode': '5002500', 'responseMessage': f'General Error: {str(e)}'}), status=500, headers=[('Content-Type', 'application/json')])
 
-    @http.route('/api/v1.0/transfer-va/advice', type='http', auth='public', methods=['POST'], csrf=False)
+    @http.route(['/api/bpi-bi-snap/advice', '/api/v1.0/transfer-va/advice'], type='http', auth='public', methods=['POST'], csrf=False)
     def bsi_advice(self):
         """
         BSI SNAP BI Advice endpoint.
-        Path: /api/v1.0/transfer-va/advice
+        Path: /api/bpi-bi-snap/advice
         Used to verify status of a previous payment.
         """
         try:
@@ -203,7 +211,7 @@ class SmartBillingController(http.Controller):
             authorization = all_headers.get('Authorization', '')
             access_token = authorization[7:] if authorization.startswith('Bearer ') else ''
 
-            if not self._verify_snap_signature('POST', '/api/v1.0/transfer-va/advice', data, access_token, x_timestamp, x_signature):
+            if not self._verify_snap_signature('POST', '/api/bpi-bi-snap/advice', data, access_token, x_timestamp, x_signature):
                 return request.make_response(json.dumps({'responseCode': '4012500', 'responseMessage': 'Invalid Signature'}), status=401, headers=[('Content-Type', 'application/json')])
 
             payment_request_id = data.get('paymentRequestId', '')
@@ -312,7 +320,7 @@ class SmartBillingController(http.Controller):
                 return False
 
             # Hash of request body
-            body_str = json.dumps(body) if isinstance(
+            body_str = json.dumps(body, separators=(',', ':')) if isinstance(
                 body, dict) else str(body)
             hash_body = hashlib.sha256(body_str.encode()).hexdigest().lower()
 
@@ -360,13 +368,15 @@ class SmartBillingController(http.Controller):
 
     def _is_token_valid(self, token):
         """Check if access token is valid"""
-        # Skip token validation if mockup mode is enabled
+        # Skip token validation ONLY in mockup + non-production mode
         ICP = request.env['ir.config_parameter'].sudo()
         use_mockup = ICP.get_param(
             'smart_billing.bsi_use_mockup', 'False') == 'True'
-        if use_mockup:
+        is_production = ICP.get_param(
+            'smart_billing.is_production', 'False') == 'True'
+        if use_mockup and not is_production:
             _logger.info(
-                "[BSI] Mockup mode enabled, skipping token validation")
+                "[BSI] Mockup mode enabled (non-production), skipping token validation")
             return True
 
         tokens_str = ICP.get_param('smart_billing.bsi_tokens', '{}')
@@ -404,8 +414,7 @@ class SmartBillingController(http.Controller):
         # Search by name (contains customer_no in format) or va_number
         # Gunakan '=' untuk pencocokan persis agar tidak salah menemukan transaksi lain
         transaction = request.env['smart.billing.transaction'].sudo().search([
-            '|', '|',
-            ('name', '=', customer_no),
+            '|',
             ('va_number', '=', customer_no),
             ('va_number', '=', f"{client_id}{customer_no}"),
         ], limit=1)
@@ -420,6 +429,8 @@ class SmartBillingController(http.Controller):
                 'partner_id': transaction.partner_id.id,
                 'invoice_id': transaction.move_id.id if transaction.move_id else None,
                 'client_id': client_id,
+                'state': transaction.state,
+                'provider_transaction_id': transaction.provider_transaction_id,
                 'additional_info': [
                     {'label': 'ORDER', 'value': transaction.name},
                 ]
@@ -493,7 +504,13 @@ class SmartBillingController(http.Controller):
                 customer_no, partner_id)
 
             if not tagihan:
-                return {'success': False, 'message': 'Tagihan tidak ditemukan'}
+                return {'success': False, 'errorCode': '4042512', 'message': 'Bill not found'}
+
+            # Check invalid amount (unless for open payment / top-up)
+            if tagihan.get('type') != 'topup' and 'amount' in tagihan:
+                expected_amount = tagihan['amount']
+                if expected_amount > 0 and float(amount) != float(expected_amount):
+                    return {'success': False, 'errorCode': '4042513', 'message': 'Invalid amount'}
 
             # Create or find transaction
             transaction = None
@@ -508,6 +525,10 @@ class SmartBillingController(http.Controller):
                     f"[BSI PAYMENT] Payment {payment_request_id} already processed in transaction {existing_by_pid.name}")
                 transaction = existing_by_pid
             elif tagihan.get('type') == 'transaction':
+                if tagihan.get('state') in ['settlement', 'paid']:
+                    # Differing paymentRequestId for an already settled bill
+                    return {'success': False, 'errorCode': '4042514', 'message': 'Already paid'}
+                
                 transaction = request.env['smart.billing.transaction'].sudo().browse(
                     tagihan['transaction_id'])
                 # If the found transaction is already settled and we have a NEW payment ID,
