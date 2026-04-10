@@ -1,12 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <report
-        id="penilaian_akhir_xlsx"
-        model="cdn.penilaian_akhir"
-        string="Print to XLSX"
-        report_type="xlsx"
-        name="pesantren_guru.penilaian_akhir"
-        file="cdn_penilaian_akhir"
-        attachment_use="False"
-    />
+    <data>
+        <record id="penilaian_akhir_xlsx" model="ir.actions.report">
+            <field name="name">Print to XLSX</field>
+            <field name="model">cdn.penilaian_akhir</field>
+            <field name="report_type">xlsx</field>
+            <field name="report_name">pesantren_guru.penilaian_akhir</field>
+            <field name="report_file">cdn_penilaian_akhir</field>
+            <field name="attachment_use" eval="False" />
+        </record>
+    </data>
 </odoo>

@@ -1,136 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-    <!-- Wizard Form View -->
-    <record id="view_smart_billing_test_wizard_form" model="ir.ui.view">
-        <field name="name">smart.billing.test.wizard.form</field>
-        <field name="model">smart.billing.test.wizard</field>
-        <field name="arch" type="xml">
-            <form string="Test SmartBilling API">
-                <sheet>
-                    <div class="oe_title">
-                        <h1>Test SmartBilling API</h1>
-                        <p class="text-muted">
-                            Test endpoint API SmartBilling (Mockup atau Production)
-                        </p>
-                    </div>
+        <!-- Wizard Form View -->
+        <record id="view_smart_billing_test_wizard_form" model="ir.ui.view">
+            <field name="name">smart.billing.test.wizard.form</field>
+            <field name="model">smart.billing.test.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Test SmartBilling API">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>Test SmartBilling API</h1>
+                            <p class="text-muted">
+                                Test endpoint API SmartBilling (Mockup atau Production)
+                            </p>
+                        </div>
 
-                    <group string="Konfigurasi">
-                        <group>
-                            <field name="api_mode" widget="radio" />
-                            <field name="mockup_url"
-                                invisible="api_mode != 'mockup'" />
+                        <group string="Konfigurasi">
+                            <group>
+                                <field name="api_mode" widget="radio" />
+                                <field name="mockup_url"
+                                    invisible="api_mode != 'mockup'" />
+                            </group>
+                            <group string="Kredensial (Override/Default)">
+                                <field name="override_credentials" widget="boolean_toggle" />
+                                <field name="bsi_client_id"
+                                    placeholder="Biarkan kosong untuk default system"
+                                    invisible="not override_credentials" />
+                                <field name="bsi_client_secret" password="1"
+                                    placeholder="Biarkan kosong untuk default system"
+                                    invisible="not override_credentials" />
+                                <field name="bsi_partner_id"
+                                    placeholder="Biarkan kosong untuk default system"
+                                    invisible="not override_credentials" />
+                            </group>
                         </group>
-                        <group string="Kredensial (Override/Default)">
-                            <field name="override_credentials" widget="boolean_toggle" />
-                            <field name="bsi_client_id"
-                                placeholder="Biarkan kosong untuk default system"
-                                invisible="not override_credentials" />
-                            <field name="bsi_client_secret" password="1"
-                                placeholder="Biarkan kosong untuk default system"
-                                invisible="not override_credentials" />
-                            <field name="bsi_partner_id"
-                                placeholder="Biarkan kosong untuk default system"
-                                invisible="not override_credentials" />
+                        <group string="Keamanan"
+                            invisible="api_mode == 'mockup' or not override_credentials">
+                            <field name="bsi_private_key" widget="text"
+                                placeholder="-----BEGIN PRIVATE KEY-----..." />
                         </group>
-                    </group>
-                    <group string="Keamanan"
-                        invisible="api_mode == 'mockup' or not override_credentials">
-                        <field name="bsi_private_key" widget="text"
-                            placeholder="-----BEGIN PRIVATE KEY-----..." />
-                    </group>
 
-                    <group string="Parameter Test">
-                        <group>
-                            <field name="test_customer_no" />
-                            <field name="test_amount" />
+                        <group string="Parameter Test">
+                            <group>
+                                <field name="test_customer_no" />
+                                <field name="test_amount" />
+                            </group>
+                            <group>
+                                <field name="access_token" readonly="1" />
+                            </group>
                         </group>
-                        <group>
-                            <field name="access_token" readonly="1" />
-                        </group>
-                    </group>
 
-                    <notebook>
-                        <page string="Auth Test" name="auth">
-                            <group>
-                                <field name="auth_status" widget="badge"
-                                    decoration-success="auth_status == 'success'"
-                                    decoration-danger="auth_status == 'failed'"
-                                    decoration-info="auth_status == 'pending'" />
-                            </group>
-                            <group>
-                                <field name="auth_result" widget="text"
-                                    placeholder="Auth result will appear here..."
-                                    nolabel="1" />
-                            </group>
-                            <footer>
-                                <button name="action_test_auth" string="Test Auth"
-                                    type="object" class="btn-primary" />
-                            </footer>
-                        </page>
+                        <notebook>
+                            <page string="Auth Test" name="auth">
+                                <group>
+                                    <field name="auth_status" widget="badge"
+                                        decoration-success="auth_status == 'success'"
+                                        decoration-danger="auth_status == 'failed'"
+                                        decoration-info="auth_status == 'pending'" />
+                                </group>
+                                <group>
+                                    <field name="auth_result" widget="text"
+                                        placeholder="Auth result will appear here..."
+                                        nolabel="1" />
+                                </group>
+                                <footer>
+                                    <button name="action_test_auth" string="Test Auth"
+                                        type="object" class="btn-primary" />
+                                </footer>
+                            </page>
 
-                        <page string="Inquiry Test" name="inquiry">
-                            <group>
-                                <field name="inquiry_status" widget="badge"
-                                    decoration-success="inquiry_status == 'success'"
-                                    decoration-danger="inquiry_status == 'failed'"
-                                    decoration-info="inquiry_status == 'pending'" />
-                            </group>
-                            <group>
-                                <field name="inquiry_result" widget="text"
-                                    placeholder="Inquiry result will appear here..."
-                                    nolabel="1" />
-                            </group>
-                            <footer>
-                                <button name="action_test_inquiry" string="Test Inquiry"
-                                    type="object" class="btn-primary" />
-                            </footer>
-                        </page>
+                            <page string="Inquiry Test" name="inquiry">
+                                <group>
+                                    <field name="inquiry_status" widget="badge"
+                                        decoration-success="inquiry_status == 'success'"
+                                        decoration-danger="inquiry_status == 'failed'"
+                                        decoration-info="inquiry_status == 'pending'" />
+                                </group>
+                                <group>
+                                    <field name="inquiry_result" widget="text"
+                                        placeholder="Inquiry result will appear here..."
+                                        nolabel="1" />
+                                </group>
+                                <footer>
+                                    <button name="action_test_inquiry" string="Test Inquiry"
+                                        type="object" class="btn-primary" />
+                                </footer>
+                            </page>
 
-                        <page string="Payment Test" name="payment">
-                            <group>
-                                <field name="payment_status" widget="badge"
-                                    decoration-success="payment_status == 'success'"
-                                    decoration-danger="payment_status == 'failed'"
-                                    decoration-info="payment_status == 'pending'" />
-                            </group>
-                            <group>
-                                <field name="payment_result" widget="text"
-                                    placeholder="Payment result will appear here..."
-                                    nolabel="1" />
-                            </group>
-                            <footer>
-                                <button name="action_test_payment" string="Test Payment"
-                                    type="object" class="btn-primary" />
-                            </footer>
-                        </page>
-                    </notebook>
-                </sheet>
+                            <page string="Payment Test" name="payment">
+                                <group>
+                                    <field name="payment_status" widget="badge"
+                                        decoration-success="payment_status == 'success'"
+                                        decoration-danger="payment_status == 'failed'"
+                                        decoration-info="payment_status == 'pending'" />
+                                </group>
+                                <group>
+                                    <field name="payment_result" widget="text"
+                                        placeholder="Payment result will appear here..."
+                                        nolabel="1" />
+                                </group>
+                                <footer>
+                                    <button name="action_test_payment" string="Test Payment"
+                                        type="object" class="btn-primary" />
+                                </footer>
+                            </page>
+                        </notebook>
+                    </sheet>
 
-                <footer>
-                    <button name="action_test_all" string="Test All"
-                        type="object" class="btn-success" />
-                    <button name="action_reset" string="Reset"
-                        type="object" class="btn-secondary" />
-                    <button string="Close" class="btn-secondary" special="cancel" />
-                </footer>
-            </form>
-        </field>
-    </record>
+                    <footer>
+                        <button name="action_test_all" string="Test All"
+                            type="object" class="btn-success" />
+                        <button name="action_reset" string="Reset"
+                            type="object" class="btn-secondary" />
+                        <button string="Close" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
 
-    <!-- Action to open wizard -->
-    <record id="action_smart_billing_test_wizard" model="ir.actions.act_window">
-        <field name="name">Test SmartBilling API</field>
-        <field name="res_model">smart.billing.test.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-    </record>
+        <!-- Action to open wizard -->
+        <record id="action_smart_billing_test_wizard" model="ir.actions.act_window">
+            <field name="name">Test SmartBilling API</field>
+            <field name="res_model">smart.billing.test.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
 
-    <!-- Menu item (under Settings > Smart Billing) -->
-    <menuitem id="menu_smart_billing_test_api"
-        name="Test API"
-        parent="pesantren_smart_billing.menu_smart_billing_config"
-        action="action_smart_billing_test_wizard"
-        sequence="100" />
+        <!-- Menu item (under Settings > Smart Billing) -->
+        <menuitem id="menu_smart_billing_test_api"
+            name="Test API"
+            parent="pesantren_smart_billing.menu_smart_billing_config"
+            action="action_smart_billing_test_wizard"
+            sequence="100" />
     </data>
 </odoo>
