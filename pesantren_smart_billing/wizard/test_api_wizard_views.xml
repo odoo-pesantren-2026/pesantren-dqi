@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
     <!-- Wizard Form View -->
     <record id="view_smart_billing_test_wizard_form" model="ir.ui.view">
         <field name="name">smart.billing.test.wizard.form</field>
@@ -131,4 +132,5 @@
         parent="pesantren_smart_billing.menu_smart_billing_config"
         action="action_smart_billing_test_wizard"
         sequence="100" />
+    </data>
 </odoo>
